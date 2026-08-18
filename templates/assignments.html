@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Assignments - Bconnect{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 700;">Course Assignments & Answer Uploads</h1>
+  <p style="color: var(--color-text-muted);">View course assignments posted by Dr. Christopher Boachie, read instructions, preview documents, and upload your answer files</p>
+</div>
+
+<!-- Course Assignments Posted by Dr. Boachie -->
+<div class="card" style="margin-bottom: 1.75rem;">
+  <h2 class="card-title">📚 Active Course Assignments ({{ available_assignments|length }})</h2>
+  {% if available_assignments %}
+    {% for ca in available_assignments %}
+    <div style="padding: 1.25rem; border: 1.5px solid var(--color-primary-border); border-radius: var(--radius-md); margin-bottom: 1.25rem; background: var(--color-surface);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);">{{ ca.course_code }} &bull; {{ ca.title }}</h3>
+          <span class="user-badge" style="font-size: 0.78rem;">Target: {{ ca.target_level }}</span>
+        </div>
+        <div style="text-align: right;">
+          <span class="badge badge-pending" style="font-size: 0.85rem;">⏰ Deadline: {{ ca.deadline }}</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 0.65rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+        <strong>Assignment File:</strong> <code>{{ ca.filename }}</code>
+        <button class="preview-btn" onclick="openDocPreview('{{ ca.filename }}', '{{ ca.course_code }}: {{ ca.title }}')">👁️ Preview Document</button>
+      </div>
+
+      {% if ca.instructions %}
+      <div style="padding: 0.85rem; background: #fffbeb; border-left: 3px solid #d97706; border-radius: 6px; font-size: 0.88rem; color: #92400e; margin-bottom: 1rem;">
+        <strong>Dr. Boachie's Instructions:</strong> "{{ ca.instructions }}"
+      </div>
+      {% endif %}
+
+      <!-- Answer Upload Box -->
+      <form action="{{ url_for('assignments') }}" method="POST" enctype="multipart/form-data" style="background: var(--color-primary-light); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-primary-border);">
+        <input type="hidden" name="assignment_id" value="{{ ca.id }}">
+        
+        <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+          <label for="answer_file_{{ ca.id }}" class="form-label" style="font-size: 0.88rem; color: var(--color-primary); font-weight: 700;">
+            📤 Upload Your Answer File for this Assignment (Word, PDF, Excel, ZIP) *
+          </label>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+            <input type="file" id="answer_file_{{ ca.id }}" name="answer_file" class="form-control" style="flex: 1; min-height: 44px; font-size: 0.88rem; background: white;" required>
+            <button type="submit" class="btn btn-primary" style="min-height: 44px;">Submit Answer &rarr;</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align: center; padding: 2rem; background: var(--color-bg); border-radius: var(--radius-md);">
+      <p style="font-size: 0.95rem; color: var(--color-text-muted);">ℹ️ No course assignments posted for your course/level yet by Dr. Christopher Boachie.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- My Submitted Answers & Digital Receipts -->
+<div class="card">
+  <h2 class="card-title">🧾 Your Submitted Answers & Evaluation History</h2>
+  {% if my_submissions %}
+    {% for sub in my_submissions %}
+    <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1rem; background: var(--color-surface-hover);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--color-primary);">{{ sub.course_code }}: {{ sub.assignment_title }}</h3>
+        <span class="badge {% if sub.grade %}badge-success{% else %}badge-info{% endif %}">
+          {% if sub.grade %}Grade: {{ sub.grade }}{% else %}{{ sub.status }}{% endif %}
+        </span>
+      </div>
+
+      <div style="font-size: 0.85rem; color: var(--color-secondary); margin-bottom: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+        <strong>Your Uploaded File:</strong> <code>{{ sub.filename }}</code>
+        <button class="preview-btn" onclick="openDocPreview('{{ sub.filename }}', 'My Answer: {{ sub.assignment_title }}')">👁️ Preview Answer Document</button>
+        <span style="color: var(--color-text-muted); font-size: 0.8rem; margin-left: 0.5rem;">Submitted: {{ sub.submitted_at|format_date('%b %d, %H:%M') }}</span>
+      </div>
+
+      {% if sub.lecturer_feedback %}
+      <div style="padding: 0.65rem; background: white; border-left: 3px solid var(--color-primary); border-radius: 4px; font-size: 0.85rem; color: var(--color-secondary); margin-top: 0.5rem;">
+        <strong>Dr. Boachie's Feedback:</strong> {{ sub.lecturer_feedback }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: var(--color-text-muted); padding: 2rem; text-align: center;">You have not submitted any assignment answers yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

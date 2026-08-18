@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Registration Pending Approval - Bconnect{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card" style="text-align: center; border: 2px solid #f59e0b; background: #fffbeb;">
+    <div style="width: 70px; height: 70px; border-radius: 50%; background: #f59e0b; color: white; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 1.25rem auto;">
+      ⏳
+    </div>
+
+    <h1 style="font-size: 1.65rem; color: #b45309; font-weight: 800; margin-bottom: 0.5rem;">
+      Registration Awaiting Lecturer Approval
+    </h1>
+    
+    <p style="font-size: 1rem; color: #92400e; font-weight: 700; margin-bottom: 1rem;">
+      Student: {{ full_name or 'Registered Student' }} (ID: {{ index_number or '-' }})
+    </p>
+
+    <div style="background: white; padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid #fcd34d; margin-bottom: 1.5rem; text-align: left; font-size: 0.92rem; color: var(--color-secondary); line-height: 1.6;">
+      <p style="margin-bottom: 0.5rem;">
+        <strong>📌 What Happens Next on Bconnect?</strong>
+      </p>
+      <ul style="padding-left: 1.25rem; margin-bottom: 0;">
+        <li>Your profile details have been sent to <strong>Dr. Christopher Boachie</strong> for review.</li>
+        <li>Dr. Boachie will verify your Index Number and Enrolled Course.</li>
+        <li>Once approved, you will be able to log in with your password to access Bconnect student services.</li>
+      </ul>
+    </div>
+
+    <a href="{{ url_for('login') }}" class="btn btn-primary btn-block" style="font-size: 1.05rem; padding: 0.85rem;">
+      Return to Bconnect Login &rarr;
+    </a>
+  </div>
+</div>
+{% endblock %}

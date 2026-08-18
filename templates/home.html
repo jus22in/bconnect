@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Bconnect - Dr. Christopher Boachie Student Portal{% endblock %}
+
+{% block content %}
+<style>
+  /* Single Viewport Non-Scrollable Landscape Layout */
+  html, body {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+  }
+  .main-container {
+    height: calc(100vh - 120px) !important;
+    max-height: calc(100vh - 120px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 1.5rem !important;
+    margin: 0 auto !important;
+  }
+  .landscape-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1150px;
+    align-items: center;
+  }
+  @media (max-width: 850px) {
+    .landscape-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>
+
+<div class="landscape-grid">
+  <!-- Left Column: Hero & Academic Services Overview -->
+  <div style="background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: white; border-radius: var(--radius-lg); padding: 2.25rem; box-shadow: var(--shadow-lg); position: relative; overflow: hidden;">
+    <div style="position: absolute; top: -30px; right: -30px; width: 140px; height: 140px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
+
+    <div style="display: inline-block; background: rgba(255,255,255,0.18); padding: 0.35rem 1rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.3);">
+      🏛️ Official Student Portal &bull; Dr. Christopher Boachie
+    </div>
+
+    <h1 style="font-size: 2.1rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem;">
+      Welcome to Bconnect
+    </h1>
+
+    <p style="font-size: 0.95rem; opacity: 0.92; line-height: 1.6; margin-bottom: 1.5rem;">
+      Your direct digital portal to Dr. Christopher Boachie. Book office hours, submit thesis drafts, upload course assignments, and access academic advising.
+    </p>
+
+    <!-- 4 Quick Feature Pills -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+      <div style="background: rgba(255,255,255,0.12); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; font-weight: 600;">
+        📅 Weekly Office Hours Slots
+      </div>
+      <div style="background: rgba(255,255,255,0.12); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; font-weight: 600;">
+        🎓 Thesis Review Threads
+      </div>
+      <div style="background: rgba(255,255,255,0.12); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; font-weight: 600;">
+        📚 Course Assignment Uploads
+      </div>
+      <div style="background: rgba(255,255,255,0.12); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; font-weight: 600;">
+        📝 Grievance & Complaints
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Student Login & Register Action Tabs -->
+  <div style="background: white; border: 2px solid var(--color-primary-border); border-radius: var(--radius-lg); padding: 2.25rem 2rem; box-shadow: var(--shadow-lg); text-align: center;">
+    <div style="width: 64px; height: 64px; border-radius: 16px; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 1.85rem; font-weight: 800; margin: 0 auto 1.25rem auto; border: 2px solid var(--color-primary-border);">
+      B
+    </div>
+
+    <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.4rem;">
+      Bconnect Student Portal
+    </h2>
+
+    <p style="font-size: 0.88rem; color: var(--color-text-muted); margin-bottom: 1.75rem;">
+      Log in to your existing account or register a new student profile to get started.
+    </p>
+
+    {% if logged_in %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-block" style="font-size: 1.05rem; padding: 0.9rem; font-weight: 800;">
+        🚀 Open My Student Dashboard &rarr;
+      </a>
+    {% else %}
+      <div style="display: flex; flex-direction: column; gap: 0.9rem;">
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-block" style="font-size: 1.05rem; padding: 0.9rem; font-weight: 800;">
+          🔑 Student Login &rarr;
+        </a>
+        <a href="{{ url_for('register') }}" class="btn" style="background: #10b981; color: white; font-size: 1.05rem; padding: 0.9rem; font-weight: 800; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+          📝 Register New Account &rarr;
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

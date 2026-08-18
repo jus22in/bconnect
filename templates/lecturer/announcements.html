@@ -1,0 +1,110 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Publish Announcements - Dr. Boachie Admin{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 800;">Targeted Announcements Publisher</h1>
+  <p style="color: var(--color-text-muted);">Publish announcements targeted to all students, specific courses, academic levels, or individual students</p>
+</div>
+
+<div class="content-grid">
+  <!-- Publish Form -->
+  <div class="card">
+    <h2 class="card-title">📢 Broadcast Announcement</h2>
+    <form action="{{ url_for('announcements') }}" method="POST">
+      <div class="form-group">
+        <label for="title" class="form-label">Announcement Title *</label>
+        <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Venue Change / Thesis Submission Deadline" required>
+      </div>
+
+      <div class="form-group">
+        <label for="target_type" class="form-label">Target Audience Group *</label>
+        <select id="target_type" name="target_type" class="form-select" onchange="updateTargetInput(this.value)" required>
+          <option value="all" selected>All Students</option>
+          <option value="course">Specific Course Group</option>
+          <option value="level">Specific Academic Level</option>
+          <option value="student">Individual Student (by Index / ID)</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="target_value_group">
+        <label for="target_value" class="form-label">Audience Target Details *</label>
+        <input type="text" id="target_value" name="target_value" class="form-control" placeholder="All Students" value="All Students" required>
+        <div class="form-hint" id="target_hint">Broadcast to all registered students</div>
+      </div>
+
+      <div class="form-group">
+        <label for="priority" class="form-label">Priority *</label>
+        <select id="priority" name="priority" class="form-select" required>
+          <option value="Normal">Normal Priority</option>
+          <option value="High">High Priority (Urgent Notice)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="content" class="form-label">Notice Message *</label>
+        <textarea id="content" name="content" rows="5" class="form-control" placeholder="Write targeted announcement for students..." required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        Publish Announcement &rarr;
+      </button>
+    </form>
+  </div>
+
+  <!-- Published Announcements -->
+  <div class="card">
+    <h2 class="card-title">📋 Broadcasted Announcements History</h2>
+    {% if announcements %}
+      {% for a in announcements %}
+      <div style="padding: 1rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1rem; background: var(--color-surface-hover);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-primary);">{{ a.title }}</h3>
+          <form action="{{ url_for('announcements') }}" method="POST" onsubmit="return confirm('Delete this announcement?');" style="margin: 0;">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="announcement_id" value="{{ a.id }}">
+            <button type="submit" class="btn btn-sm btn-outline" style="color: var(--color-danger); border-color: var(--color-primary-border);">Delete</button>
+          </form>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--color-secondary); margin-bottom: 0.5rem;">
+          {{ a.content }}
+        </p>
+        <div style="font-size: 0.78rem; color: var(--color-text-muted);">
+          Posted on <strong>{{ a.posted_at|format_date('%B %d, %Y') }}</strong> &bull; Audience: <span class="badge badge-info">{{ a.target_type|upper }}: {{ a.target_value }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align: center; padding: 2.5rem; background: var(--color-bg); border-radius: var(--radius-md); border: 2px dashed var(--color-border);">
+        <p style="font-size: 1.1rem; font-weight: 700; color: var(--color-secondary); margin-bottom: 0.35rem;">No Announcements Published Yet</p>
+        <p style="font-size: 0.88rem; color: var(--color-text-muted);">Use the broadcast form to send notices to all students, specific courses, or individual students.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function updateTargetInput(type) {
+  const valInput = document.getElementById('target_value');
+  const hint = document.getElementById('target_hint');
+  
+  if (type === 'all') {
+    valInput.value = 'All Students';
+    hint.textContent = 'Broadcast to all registered students';
+  } else if (type === 'course') {
+    valInput.value = '';
+    valInput.placeholder = 'Type course name or code (e.g. CS 401, Machine Learning)';
+    hint.textContent = 'Only students enrolled in this course will see this announcement';
+  } else if (type === 'level') {
+    valInput.value = '';
+    valInput.placeholder = 'Type level (e.g. Undergraduate Level 400, Ph.D. Student)';
+    hint.textContent = 'Only students in this academic level will see this announcement';
+  } else if (type === 'student') {
+    valInput.value = '';
+    valInput.placeholder = 'Type student index number or ID';
+    hint.textContent = 'Only the specific student with this index number will see this announcement';
+  }
+}
+</script>
+{% endblock %}

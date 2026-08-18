@@ -1,0 +1,12 @@
+# Bconnect Sample Document Preview File
+Course: Computer Science / Academic Coursework
+Author: Dr. Christopher Boachie / Bconnect Portal
+Status: Official Document Attachment
+
+----------------------------------------------------
+ASSIGNMENT & RESEARCH INSTRUCTIONS:
+1. Review all course materials uploaded for the semester.
+2. Complete all assigned problem sets before the specified deadline.
+3. Submit your final answer document via the Bconnect Student Portal.
+----------------------------------------------------
+Thank you for using Bconnect Academic Hub!

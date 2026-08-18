@@ -1,0 +1,138 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Admin Dashboard - Dr. Christopher Boachie{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="lecturer-hero">
+  <div>
+    <h2>Dr. Christopher Boachie Workspace</h2>
+    <p>Lecturer Admin Portal &bull; Senior Lecturer & Academic Advisor</p>
+  </div>
+  <div>
+    <a href="{{ url_for('announcements') }}" class="btn" style="background: white; color: var(--color-primary);">+ Post Announcement</a>
+  </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div>
+      <div class="stat-value">{{ students_count }}</div>
+      <div class="stat-label">Total Registered Students</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📅</div>
+    <div>
+      <div class="stat-value">{{ meetings_count }}</div>
+      <div class="stat-label">Pending Meetings</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">🎓</div>
+    <div>
+      <div class="stat-value">{{ thesis_count }}</div>
+      <div class="stat-label">Thesis Submissions</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📚</div>
+    <div>
+      <div class="stat-value">{{ assignments_count }}</div>
+      <div class="stat-label">Submitted Assignments</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">⚠️</div>
+    <div>
+      <div class="stat-value">{{ complaints_count }}</div>
+      <div class="stat-label">Open Complaints</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📄</div>
+    <div>
+      <div class="stat-value">{{ requests_count }}</div>
+      <div class="stat-label">Academic Requests</div>
+    </div>
+  </div>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+  <!-- Recent Registered Students -->
+  <div class="card">
+    <div class="card-title">
+      <span>👥 Recent Registered Students</span>
+      <a href="{{ url_for('students') }}" style="font-size: 0.85rem; font-weight: 500;">View Roster & Groupings &rarr;</a>
+    </div>
+    {% if recent_students %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Index / ID</th>
+            <th>Academic Level</th>
+            <th>Enrolled Course</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in recent_students %}
+          <tr>
+            <td style="font-weight: 700;">{{ s.full_name }}</td>
+            <td><code>{{ s.index_number }}</code></td>
+            <td><span class="badge badge-info">{% if s.student_level == 'Other' and s.level_other %}{{ s.level_other }}{% else %}{{ s.student_level }}{% endif %}</span></td>
+            <td style="font-weight: 600;">{{ s.enrolled_course }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color: var(--color-text-muted); text-align: center; padding: 1.5rem;">No students registered yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Pending Office Hour Meetings -->
+  <div class="card">
+    <div class="card-title">
+      <span>📅 Recent Meeting Reservation Requests</span>
+      <a href="{{ url_for('meetings') }}" style="font-size: 0.85rem; font-weight: 500;">Manage All &rarr;</a>
+    </div>
+    {% if recent_meetings %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Topic</th>
+            <th>Preferred Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in recent_meetings %}
+          <tr>
+            <td style="font-weight: 700;">{{ m.full_name }} <br><small style="color: var(--color-text-muted);">{{ m.enrolled_course }}</small></td>
+            <td>{{ m.topic }}</td>
+            <td>{{ m.preferred_date }}</td>
+            <td><span class="badge badge-pending">{{ m.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color: var(--color-text-muted); text-align: center; padding: 1.5rem;">No meeting requests pending.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

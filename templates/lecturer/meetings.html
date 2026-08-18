@@ -1,0 +1,704 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Office Hours & Live Online Classes - Bconnect Workspace{% endblock %}
+
+{% block content %}
+<style>
+  /* Host Google Meet / MS Teams Style Classroom UI */
+  .meet-container {
+    background: #0f172a;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    color: white;
+    box-shadow: var(--shadow-lg);
+  }
+  .meet-header {
+    background: #1e293b;
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+  }
+  .meet-body {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    height: 520px;
+  }
+  @media (max-width: 900px) {
+    .meet-body {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+  }
+  .video-stage {
+    background: #090d16;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+  }
+  .video-card {
+    background: #1e293b;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #dc2626;
+  }
+  .video-card video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .video-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+  }
+  .video-label {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(4px);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .meet-controls {
+    background: #1e293b;
+    padding: 0.85rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.85rem;
+    border-top: 1px solid #334155;
+    flex-wrap: wrap;
+  }
+  .ctrl-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: #334155;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .ctrl-btn:hover {
+    background: #475569;
+    transform: scale(1.05);
+  }
+  .ctrl-btn.active {
+    background: #dc2626;
+  }
+  .meet-sidebar {
+    background: #1e293b;
+    border-left: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-header {
+    padding: 0.85rem;
+    border-bottom: 1px solid #334155;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #94a3b8;
+  }
+  .chat-messages {
+    flex: 1;
+    padding: 0.85rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .chat-msg {
+    background: #334155;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+  }
+</style>
+
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 800;">Office Hours & Live Online Classes Manager</h1>
+  <p style="color: var(--color-text-muted);">Host Live Video Classes (Google Meet / MS Teams style) with camera & audio controls, presentation slides deck, Waiting Room gate approvals (with Accept All option), and automated attendance tracking</p>
+</div>
+
+<!-- ========================================== -->
+<!-- SECTION 1: LIVE ONLINE CLASS CREATION & CONTROL PANEL -->
+<!-- ========================================== -->
+<div class="content-grid" style="margin-bottom: 2rem;">
+  <!-- Schedule Live Class Form -->
+  <div class="card">
+    <h2 class="card-title">🔴 Schedule Live Online Class</h2>
+    <form action="{{ url_for('meetings') }}" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="schedule_online_class">
+      
+      <div class="form-group">
+        <label for="class_course_code" class="form-label">Course Code & Name *</label>
+        <input type="text" id="class_course_code" name="course_code" class="form-control" placeholder="e.g. CS 401: Advanced Data Structures" required>
+      </div>
+
+      <div class="form-group">
+        <label for="class_topic" class="form-label">Class Topic / Lecture Title *</label>
+        <input type="text" id="class_topic" name="topic" class="form-control" placeholder="e.g. Lecture 6: Binary Search Trees & Heaps" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <div class="form-group">
+          <label for="start_time" class="form-label">Start Date & Time *</label>
+          <input type="datetime-local" id="start_time" name="start_time" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="duration" class="form-label">Class Duration *</label>
+          <input type="text" id="duration" name="duration" class="form-control" placeholder="e.g. 1 Hour 30 Mins" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="end_time" class="form-label">End Date & Time *</label>
+        <input type="datetime-local" id="end_time" name="end_time" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="class_slides_file" class="form-label">Attach Course Lecture Slides Deck (.pptx, .pdf, .docx)</label>
+        <input type="file" id="class_slides_file" name="class_slides_file" class="form-control" accept=".pptx,.pdf,.docx,.ppt,.doc">
+        <div class="form-hint">Upload primary presentation slides for this class. (Also accessible during live video session)</div>
+      </div>
+
+      <div class="form-group">
+        <label for="agenda" class="form-label">Class Agenda / Notes (Optional)</label>
+        <textarea id="agenda" name="agenda" rows="3" class="form-control" placeholder="Type lecture agenda, reading materials, or student preparation instructions..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        🚀 Schedule Class & Broadcast Locked Notification &rarr;
+      </button>
+    </form>
+  </div>
+
+  <!-- Live Classes Control Panel & Presentation Deck -->
+  <div class="card">
+    <h2 class="card-title">🎥 Active & Upcoming Online Classes ({{ online_classes|length }})</h2>
+    
+    {% if online_classes %}
+      {% for oc in online_classes %}
+      <div style="padding: 1.25rem; border: 2px solid var(--color-primary-border); border-radius: var(--radius-md); margin-bottom: 1.25rem; background: var(--color-surface);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);">{{ oc.course_code }}: {{ oc.topic }}</h3>
+            <div style="font-size: 0.85rem; color: var(--color-secondary); margin-top: 3px;">
+              <strong>Start:</strong> {{ oc.start_time }} &bull; <strong>Duration:</strong> {{ oc.duration }} &bull; <strong>Ends:</strong> {{ oc.end_time }}
+            </div>
+          </div>
+
+          <!-- Class Session Controls -->
+          <div style="display: flex; gap: 0.5rem;">
+            {% if oc.status == 'Scheduled' %}
+              <form action="{{ url_for('meetings') }}" method="POST" style="margin: 0;">
+                <input type="hidden" name="action" value="start_class">
+                <input type="hidden" name="class_id" value="{{ oc.id }}">
+                <button type="submit" class="btn btn-primary btn-sm" style="background: #16a34a; border-color: #15803d;">
+                  🔓 Start Live Session
+                </button>
+              </form>
+            {% elif oc.status == 'Live Now' %}
+              <span class="badge badge-success" style="background: #16a34a; align-self: center;">🔴 LIVE NOW</span>
+              <form action="{{ url_for('meetings') }}" method="POST" style="margin: 0;" onsubmit="return confirm('End live class session and archive final attendance roster?');">
+                <input type="hidden" name="action" value="end_class">
+                <input type="hidden" name="class_id" value="{{ oc.id }}">
+                <button type="submit" class="btn btn-outline btn-sm" style="color: var(--color-danger); border-color: var(--color-primary-border);">
+                  🏁 End Session
+                </button>
+              </form>
+            {% else %}
+              <span class="badge badge-secondary">Ended</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- HOST WEBRTC VIDEO CLASSROOM (ACTIVE WHEN LIVE NOW) -->
+        {% if oc.status == 'Live Now' %}
+        <div class="meet-container" style="margin-top: 1rem;">
+          <div class="meet-header">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e;"></span>
+              <span style="font-weight: 800; font-size: 0.95rem;">🔴 Live Video Room: {{ oc.topic }} (Host Control Panel)</span>
+            </div>
+
+            <form action="{{ url_for('meetings') }}" method="POST" style="margin: 0;" onsubmit="return confirm('End live session for all students?');">
+              <input type="hidden" name="action" value="end_class">
+              <input type="hidden" name="class_id" value="{{ oc.id }}">
+              <button type="submit" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #ef4444; background: rgba(239,68,68,0.1);">
+                🏁 End Session for All
+              </button>
+            </form>
+          </div>
+
+          <div class="meet-body">
+            <!-- Left: Video Grid Stage -->
+            <div class="video-stage">
+              <div class="video-grid">
+                <!-- Host Dr. Boachie Camera Card -->
+                <div class="video-card" id="hostVidCard">
+                  <video id="hostCamStream" autoplay playsinline muted style="display: none;"></video>
+                  <div class="video-avatar" id="hostAvatar">DB</div>
+                  <div class="video-label">
+                    <span id="hostCamStatus">📷 Camera Off</span> &bull; <span>Dr. Christopher Boachie (Host)</span>
+                  </div>
+                </div>
+
+                <!-- Active Participants / Presentation Canvas Card -->
+                <div class="video-card">
+                  <div class="video-avatar" style="background: #3b82f6;">ST</div>
+                  <div class="video-label">
+                    <span>👥 Connected Students Roster</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Live Chat & Participant Controls -->
+            <div class="meet-sidebar">
+              <div class="sidebar-header">💬 Live Classroom Chat</div>
+              <div class="chat-messages" id="hostLiveChatBox">
+                <div class="chat-msg">
+                  <strong style="color: #f87171;">Host:</strong> Live video & audio stream initialized.
+                </div>
+              </div>
+
+              <div style="padding: 0.65rem; border-top: 1px solid #334155; display: flex; gap: 0.35rem;">
+                <input type="text" id="hostLiveChatInput" class="form-control" style="font-size: 0.8rem; background: #0f172a; border-color: #334155; color: white; min-height: 36px;" placeholder="Type broadcast message...">
+                <button onclick="sendHostChatMessage()" class="btn btn-primary btn-sm" style="min-height: 36px; background: #dc2626; border-color: #b91c1c;">Broadcast</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Control Bar for Dr. Boachie -->
+          <div class="meet-controls">
+            <button class="ctrl-btn" id="btnHostMic" onclick="toggleHostMic()" title="Toggle Host Microphone">
+              🎤
+            </button>
+            <button class="ctrl-btn" id="btnHostCam" onclick="toggleHostCam()" title="Toggle Host Camera">
+              📹
+            </button>
+            <button class="ctrl-btn" id="btnHostShare" onclick="shareHostScreen()" title="Share Screen / Presentation Slides">
+              🖥️
+            </button>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- LIVE LECTURE SLIDES PRESENTATION PANEL -->
+        <div style="background: #fef2f2; border: 1.5px solid var(--color-primary-border); border-radius: var(--radius-sm); padding: 1rem; margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--color-primary); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📚 Course Lecture Slides & Presentation Materials ({{ oc.course_slides|length }})</span>
+            </h4>
+            
+            <!-- Mid-Class Upload Extra Slides Form -->
+            <form action="{{ url_for('meetings') }}" method="POST" enctype="multipart/form-data" style="display: flex; gap: 0.35rem; align-items: center; margin: 0;">
+              <input type="hidden" name="action" value="upload_class_slides">
+              <input type="hidden" name="class_id" value="{{ oc.id }}">
+              <input type="file" name="slides_file" style="font-size: 0.75rem; max-width: 180px;" required>
+              <button type="submit" class="btn btn-primary btn-sm" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">📤 Upload Slides</button>
+            </form>
+          </div>
+
+          {% if oc.course_slides %}
+            <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem;">
+              {% for slide in oc.course_slides %}
+              <div style="padding: 0.6rem 0.85rem; background: white; border: 1px solid var(--color-border); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                  <strong style="font-size: 0.85rem; color: var(--color-primary);">{{ slide.title }}</strong>
+                  <div style="font-size: 0.78rem; color: var(--color-text-muted);">
+                    File: <code>{{ slide.filename }}</code> &bull; Source: {{ slide.source_type }}
+                  </div>
+                </div>
+                
+                <button class="preview-btn" style="padding: 0.35rem 0.75rem; font-size: 0.82rem;" onclick="openDocPreview('{{ slide.filename }}', 'Lecture Slides Deck: {{ slide.title }}')">
+                  👁️ Present / View Slides
+                </button>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="font-size: 0.8rem; color: var(--color-text-muted); font-style: italic; margin: 0;">
+              No lecture slides attached yet for this course. Use the upload button above to add presentation slides.
+            </p>
+          {% endif %}
+        </div>
+
+        <!-- Waiting Room Entry / Reentry Approval Queue with Accept All Option -->
+        {% if oc.status == 'Live Now' %}
+          <div style="background: white; border: 1.5px solid #93c5fd; border-radius: var(--radius-sm); padding: 1rem; margin-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem;">
+              <h4 style="font-size: 0.95rem; font-weight: 800; color: #1e40af; margin: 0;">
+                ✋ Virtual Waiting Room Queue ({{ oc.pending_requests|length }})
+              </h4>
+
+              <!-- ACCEPT ALL WAITING ROOM REQUESTS BUTTON -->
+              {% if oc.pending_requests %}
+              <form action="{{ url_for('meetings') }}" method="POST" style="margin: 0;" onsubmit="return confirm('Approve entry for all {{ oc.pending_requests|length }} waiting students at once?');">
+                <input type="hidden" name="action" value="approve_all_class_joins">
+                <input type="hidden" name="class_id" value="{{ oc.id }}">
+                <button type="submit" class="btn btn-primary btn-sm" style="background: #16a34a; border-color: #15803d; font-weight: 800;">
+                  ✓ Accept / Approve All Waiting ({{ oc.pending_requests|length }})
+                </button>
+              </form>
+              {% endif %}
+            </div>
+
+            {% if oc.pending_requests %}
+              {% for req in oc.pending_requests %}
+              <div style="padding: 0.85rem; border-radius: 6px; margin-bottom: 0.65rem; {% if req.request_type == 'Reentry' %}background: #fef2f2; border: 1.5px solid #fca5a5;{% else %}background: #eff6ff; border: 1px solid #bfdbfe;{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.92rem; color: var(--color-primary);">
+                      {{ req.full_name }} (Index No: <code>{{ req.index_number }}</code>)
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--color-secondary);">
+                      Course: {{ req.enrolled_course }} &bull; Level: {{ req.student_level }}
+                    </div>
+
+                    {% if req.request_type == 'Reentry' %}
+                    <div style="font-size: 0.82rem; font-weight: 700; color: #b91c1c; margin-top: 4px; display: flex; align-items: center; gap: 0.35rem;">
+                      ⚠️ REENTRY REQUEST: Student was previously in this class session!
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <div style="display: flex; gap: 0.4rem;">
+                    <form action="{{ url_for('meetings') }}" method="POST" style="margin: 0;">
+                      <input type="hidden" name="action" value="decide_class_join">
+                      <input type="hidden" name="request_id" value="{{ req.id }}">
+                      <input type="hidden" name="decision" value="Approve">
+                      <button type="submit" class="btn btn-primary btn-sm" style="background: #16a34a; border-color: #15803d;">✓ Approve Entry</button>
+                    </form>
+                    <form action="{{ url_for('meetings') }}" method="POST" style="margin: 0;">
+                      <input type="hidden" name="action" value="decide_class_join">
+                      <input type="hidden" name="request_id" value="{{ req.id }}">
+                      <input type="hidden" name="decision" value="Deny">
+                      <button type="submit" class="btn btn-outline btn-sm" style="color: var(--color-danger);">✗ Deny</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size: 0.82rem; color: var(--color-text-muted); font-style: italic; margin: 0;">No student waiting in entry queue.</p>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <!-- Automated Attendance Roster Ledger -->
+        <div style="margin-top: 1rem;">
+          <h4 style="font-size: 0.9rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.5rem;">
+            📊 Class Attendance Roster & Timestamps ({{ oc.attendance_list|length }})
+          </h4>
+
+          {% if oc.attendance_list %}
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; background: white; border: 1px solid var(--color-border); border-radius: 6px;">
+                <thead>
+                  <tr style="background: var(--color-surface); text-align: left;">
+                    <th style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Student</th>
+                    <th style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Index No</th>
+                    <th style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Status</th>
+                    <th style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Reentry Count</th>
+                    <th style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Joined At</th>
+                    <th style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">Left At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for att in oc.attendance_list %}
+                  <tr>
+                    <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); font-weight: 700;">{{ att.full_name }}</td>
+                    <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);"><code>{{ att.index_number }}</code></td>
+                    <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">
+                      <span class="badge {% if att.status == 'Present' %}badge-success{% else %}badge-danger{% endif %}">{{ att.status }}</span>
+                    </td>
+                    <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); font-weight: 700;">{{ att.join_count }}x Joined</td>
+                    <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">{{ att.last_joined_at|format_date('%H:%M:%S') or '-' }}</td>
+                    <td style="padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);">{{ att.last_left_at|format_date('%H:%M:%S') or '-' }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p style="font-size: 0.8rem; color: var(--color-text-muted); font-style: italic;">No attendance recorded yet for this session.</p>
+          {% endif %}
+        </div>
+
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="font-size: 0.88rem; color: var(--color-text-muted); text-align: center; padding: 2rem;">No live online classes created yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- SECTION 2: WEEKLY CONSULTATION AVAILABILITY -->
+<!-- ========================================== -->
+<div class="content-grid">
+  <!-- Weekly Availability Assignment Form -->
+  <div class="card">
+    <h2 class="card-title">📅 Assign Weekly Available Consultation Slots</h2>
+    <form action="{{ url_for('meetings') }}" method="POST">
+      <input type="hidden" name="action" value="add_availability">
+      
+      <div class="form-group">
+        <label for="week_label" class="form-label">Current Academic Week Label *</label>
+        <input type="text" id="week_label" name="week_label" class="form-control" placeholder="e.g. Week 5 (Aug 01 - Aug 07, 2026)" required>
+      </div>
+
+      <div class="form-group">
+        <label for="available_date" class="form-label">Available Date *</label>
+        <input type="date" id="available_date" name="available_date" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="time_slot" class="form-label">Available Time Slot *</label>
+        <input type="text" id="time_slot" name="time_slot" class="form-control" placeholder="e.g. 10:00 AM - 11:30 AM or 02:00 PM - 04:00 PM" required>
+      </div>
+
+      <div class="form-group">
+        <label for="notes" class="form-label">Venue / Consultation Notes (Optional)</label>
+        <input type="text" id="notes" name="notes" class="form-control" placeholder="e.g. Office 304, CS Dept or Online Video Call link">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        🚀 Publish Slot & Notify All Students &rarr;
+      </button>
+    </form>
+  </div>
+
+  <!-- Active Assigned Weekly Slots List -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+      <h2 class="card-title" style="margin: 0;">📋 Active Weekly Available Slots ({{ active_availability|length }})</h2>
+      {% if active_availability %}
+      <form action="{{ url_for('meetings') }}" method="POST" onsubmit="return confirm('Clear and deactivate all weekly slots for past week?');" style="margin: 0;">
+        <input type="hidden" name="action" value="clear_week">
+        <button type="submit" class="btn btn-outline btn-sm" style="color: var(--color-danger); border-color: var(--color-primary-border);">
+          🔄 Reset / End Current Week Slots
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+    {% if active_availability %}
+      {% for slot in active_availability %}
+      <div style="padding: 1rem; border: 1.5px solid var(--color-primary-border); border-radius: var(--radius-md); margin-bottom: 0.85rem; background: var(--color-surface);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-primary);">{{ slot.available_date }} &bull; {{ slot.time_slot }}</h3>
+          <span class="badge badge-success">{{ slot.week_label }}</span>
+        </div>
+        {% if slot.notes %}
+        <div style="font-size: 0.85rem; color: var(--color-secondary);">
+          <strong>Venue/Notes:</strong> {{ slot.notes }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align: center; padding: 2.25rem; background: #fffbeb; border-radius: var(--radius-md); border: 2px dashed #fcd34d;">
+        <p style="font-size: 1.05rem; font-weight: 800; color: #b45309; margin-bottom: 0.35rem;">🔒 No Available Slots Assigned for Current Week</p>
+        <p style="font-size: 0.88rem; color: #92400e; margin: 0;">
+          Students cannot book any office hours meetings until you assign and publish this week's consultation days and time slots above.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- SECTION 3: STUDENT BOOKED CONSULTATION REQUESTS -->
+<!-- ========================================== -->
+<div class="card" style="margin-top: 1.75rem;">
+  <h2 class="card-title">📅 Student Consultation Requests & Decisions</h2>
+  {% if meetings %}
+    {% for m in meetings %}
+    <div style="padding: 1.25rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1.25rem; background: var(--color-surface-hover);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);">Topic: {{ m.topic }}</h3>
+          <p style="font-size: 0.9rem; font-weight: 700; color: var(--color-secondary);">
+            Student: {{ m.full_name }} (ID: <code>{{ m.index_number }}</code>) &bull; Phone: {{ m.phone_number }}
+          </p>
+        </div>
+        <span class="badge {% if m.status == 'Declined' %}badge-danger{% elif m.status == 'Approved' %}badge-approved{% else %}badge-warning{% endif %}">
+          {{ m.status }} {% if m.request_feedback %}(Feedback Requested){% endif %}
+        </span>
+      </div>
+
+      <div style="font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 0.75rem;">
+        <strong>Requested Slot:</strong> {{ m.preferred_date }} at {{ m.preferred_time }}
+      </div>
+
+      {% if m.notes %}
+      <div style="font-size: 0.85rem; color: var(--color-text-muted); font-style: italic; margin-bottom: 0.75rem;">
+        "{{ m.notes }}"
+      </div>
+      {% endif %}
+
+      <!-- Lecturer Decision Form -->
+      <form action="{{ url_for('meetings') }}" method="POST" style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-primary-border);">
+        <input type="hidden" name="action" value="decide_meeting">
+        <input type="hidden" name="meeting_id" value="{{ m.id }}">
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; flex-wrap: wrap;">
+            <div>
+              <label class="form-label" style="font-size: 0.8rem;">Decision Status *</label>
+              <select name="status" class="form-select" style="min-height: 40px; font-size: 0.88rem;" required>
+                <option value="Approved" {% if m.status == 'Approved' %}selected{% endif %}>Approve Booking Request</option>
+                <option value="Rescheduled" {% if m.status == 'Rescheduled' %}selected{% endif %}>Reschedule Booking</option>
+                <option value="Completed" {% if m.status == 'Completed' %}selected{% endif %}>Mark Completed</option>
+                <option value="Declined" {% if m.status == 'Declined' %}selected{% endif %}>Decline / Reject Request</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.8rem;">Reason / Response Notes *</label>
+              <input type="text" name="lecturer_response" class="form-control" style="min-height: 40px; font-size: 0.88rem;" placeholder="e.g. Approved. Office 304, CS Dept or Decline reason..." value="{{ m.lecturer_response or '' }}" required>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: var(--color-surface-hover); padding: 0.6rem 0.85rem; border-radius: 6px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: var(--color-secondary); display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+              <input type="checkbox" name="request_feedback" {% if m.request_feedback == 1 %}checked{% endif %}>
+              <span>💬 Allow / Request Feedback Reply from Student (If unchecked, rejection is final with zero student reply)</span>
+            </label>
+
+            <button type="submit" class="btn btn-primary btn-sm" style="min-height: 38px;">Save Decision &rarr;</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: var(--color-text-muted); text-align: center; padding: 2.5rem;">No student meeting booking requests yet.</p>
+  {% endif %}
+</div>
+
+<script>
+  let hostStream = null;
+  let isHostMicOn = false;
+  let isHostCamOn = false;
+
+  async function toggleHostCam() {
+    const video = document.getElementById('hostCamStream');
+    const avatar = document.getElementById('hostAvatar');
+    const status = document.getElementById('hostCamStatus');
+    const btn = document.getElementById('btnHostCam');
+
+    if (!isHostCamOn) {
+      try {
+        hostStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: isHostMicOn });
+        video.srcObject = hostStream;
+        video.style.display = 'block';
+        avatar.style.display = 'none';
+        status.textContent = '📹 Camera On';
+        btn.classList.remove('active');
+        isHostCamOn = true;
+      } catch (err) {
+        alert('Could not access host camera device: ' + err.message);
+      }
+    } else {
+      if (hostStream) {
+        hostStream.getVideoTracks().forEach(track => track.stop());
+      }
+      video.style.display = 'none';
+      avatar.style.display = 'flex';
+      status.textContent = '📷 Camera Off';
+      btn.classList.add('active');
+      isHostCamOn = false;
+    }
+  }
+
+  async function toggleHostMic() {
+    const btn = document.getElementById('btnHostMic');
+    if (!isHostMicOn) {
+      try {
+        if (!hostStream) {
+          hostStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isHostCamOn });
+        } else {
+          const audioTrack = await navigator.mediaDevices.getUserMedia({ audio: true });
+          hostStream.addTrack(audioTrack.getAudioTracks()[0]);
+        }
+        btn.classList.remove('active');
+        isHostMicOn = true;
+        alert('🎤 Host Microphone unmuted!');
+      } catch (err) {
+        alert('Could not access microphone: ' + err.message);
+      }
+    } else {
+      if (hostStream) {
+        hostStream.getAudioTracks().forEach(track => track.stop());
+      }
+      btn.classList.add('active');
+      isHostMicOn = false;
+      alert('🔇 Host Microphone muted.');
+    }
+  }
+
+  async function shareHostScreen() {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const video = document.getElementById('hostCamStream');
+      const avatar = document.getElementById('hostAvatar');
+      video.srcObject = screenStream;
+      video.style.display = 'block';
+      avatar.style.display = 'none';
+      alert('🖥️ Screen / Presentation Slides sharing active in Live Class stream!');
+    } catch (err) {
+      console.log('Screen share cancelled or failed:', err);
+    }
+  }
+
+  function sendHostChatMessage() {
+    const input = document.getElementById('hostLiveChatInput');
+    const box = document.getElementById('hostLiveChatBox');
+    if (!input.value.trim()) return;
+
+    const div = document.createElement('div');
+    div.className = 'chat-msg';
+    div.innerHTML = `<strong style="color:#f87171;">Dr. Christopher Boachie (Host):</strong> ${input.value.trim()}`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    input.value = '';
+  }
+</script>
+{% endblock %}

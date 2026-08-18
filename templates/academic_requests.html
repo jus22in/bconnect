@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Academic Requests - BoachieEdu{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 700;">Academic Requests & Endorsements</h1>
+  <p style="color: var(--color-text-muted);">Request recommendation letters, transcript endorsements, and formal academic reference letters</p>
+</div>
+
+<div class="content-grid">
+  <!-- Request Form -->
+  <div class="card">
+    <h2 class="card-title">📄 Submit Academic Request</h2>
+    <form action="{{ url_for('academic_requests') }}" method="POST">
+      <div class="form-group">
+        <label for="request_type" class="form-label">Request Type *</label>
+        <select id="request_type" name="request_type" class="form-select" required>
+          <option value="" disabled selected>-- Select Request Type --</option>
+          <option value="Recommendation Letter (Graduate Studies)">Recommendation Letter (Graduate School / Master's / Ph.D.)</option>
+          <option value="Recommendation Letter (Employment / Internship)">Recommendation Letter (Employment / Internship)</option>
+          <option value="Transcript Endorsement & Verification">Transcript Endorsement & Verification</option>
+          <option value="Course Completion Certificate">Course Completion Certificate</option>
+          <option value="Research Collaboration Inquiry">Research Collaboration Inquiry</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="purpose" class="form-label">Institution / Recipient & Purpose *</label>
+        <input type="text" id="purpose" name="purpose" class="form-control" placeholder="e.g. University of Oxford Master's Application" required>
+      </div>
+
+      <div class="form-group">
+        <label for="details" class="form-label">Additional Details / Submission Deadline</label>
+        <textarea id="details" name="details" rows="4" class="form-control" placeholder="Mention courses taken with Dr. Boachie, grades obtained, application portal submission deadline, and any specific points to highlight..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        Submit Request to Dr. Boachie &rarr;
+      </button>
+    </form>
+  </div>
+
+  <!-- Request Status History -->
+  <div class="card">
+    <h2 class="card-title">📜 Active Requests & Status</h2>
+    {% if requests %}
+      {% for r in requests %}
+      <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1rem; background: var(--color-surface-hover);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--color-primary);">{{ r.request_type }}</h3>
+          <span class="badge badge-info">{{ r.status }}</span>
+        </div>
+        <div style="font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 0.35rem;">
+          <strong>Target Institution / Purpose:</strong> {{ r.purpose }}
+        </div>
+        {% if r.details %}
+        <div style="font-size: 0.85rem; color: var(--color-text-muted);">
+          "{{ r.details }}"
+        </div>
+        {% endif %}
+        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+          Submitted on {{ r.created_at|format_date('%b %d, %Y %H:%M') }}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--color-text-muted); padding: 2rem; text-align: center;">No active academic requests.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

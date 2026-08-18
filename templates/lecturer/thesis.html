@@ -1,0 +1,102 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Thesis Review - Bconnect Workspace{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 800;">Thesis & Research Review Manager</h1>
+  <p style="color: var(--color-text-muted);">Review submitted student thesis drafts, preview documents inline, write supervisor notes, and update review statuses</p>
+</div>
+
+<div class="card">
+  <h2 class="card-title">🎓 Student Thesis Submissions ({{ theses|length }})</h2>
+  {% if theses %}
+    {% for t in theses %}
+    <div style="padding: 1.25rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1.5rem; background: var(--color-surface-hover);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);">{{ t.title }}</h3>
+          <p style="font-size: 0.9rem; font-weight: 700; color: var(--color-secondary);">
+            Author: {{ t.full_name }} (ID: <code>{{ t.index_number }}</code>) &bull; Level: {{ t.student_level }}
+          </p>
+        </div>
+        <span class="badge {% if t.status == 'Approved & Accepted' %}badge-approved{% else %}badge-warning{% endif %}">
+          {{ t.status }}
+        </span>
+      </div>
+
+      <div style="font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 0.5rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+        <strong>Stage:</strong> {{ t.stage }} &bull; <strong>File:</strong> <code>{{ t.filename }}</code>
+        <button class="preview-btn" onclick="openDocPreview('{{ t.filename }}', 'Thesis: {{ t.title }} ({{ t.full_name }})')">👁️ Preview Thesis Document</button>
+      </div>
+
+      <div style="font-size: 0.88rem; color: var(--color-text-muted); margin-bottom: 1rem; background: white; padding: 0.85rem; border-radius: 6px; border: 1px solid var(--color-border);">
+        <strong>Abstract:</strong> {{ t.abstract }}
+      </div>
+
+      <!-- Supervisor Feedback Form -->
+      <form action="{{ url_for('thesis') }}" method="POST" style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-primary-border); margin-bottom: 1rem;">
+        <input type="hidden" name="thesis_id" value="{{ t.id }}">
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; flex-wrap: wrap;">
+            <div>
+              <label class="form-label" style="font-size: 0.8rem;">Thesis Status *</label>
+              <select name="status" class="form-select" style="min-height: 40px; font-size: 0.88rem;" required>
+                <option value="Under Review" {% if t.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                <option value="Revision Required" {% if t.status == 'Revision Required' %}selected{% endif %}>Revision Required</option>
+                <option value="Approved & Accepted" {% if t.status == 'Approved & Accepted' %}selected{% endif %}>Approved & Accepted (Final)</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.8rem;">Supervisor Feedback Notes *</label>
+              <input type="text" name="supervisor_feedback" class="form-control" style="min-height: 40px; font-size: 0.88rem;" placeholder="Write supervisor feedback notes..." value="{{ t.supervisor_feedback or '' }}" required>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <button type="submit" class="btn btn-primary btn-sm" style="min-height: 38px;">Save Supervisor Review &rarr;</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Multi-turn Thread Discussion Section -->
+      <div style="background: white; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 0.85rem;">
+        <div style="font-size: 0.82rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05rem;">
+          💬 Thesis Discussion & Revision History
+        </div>
+
+        {% if t.threads %}
+          {% for m in t.threads %}
+          <div style="margin-bottom: 0.5rem; padding: 0.6rem; border-radius: 6px; font-size: 0.85rem; {% if m.sender_type == 'lecturer' %}background: #fef2f2; border-left: 3px solid #dc2626;{% else %}background: #f1f5f9; border-left: 3px solid #64748b;{% endif %}">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.8rem; margin-bottom: 0.2rem;">
+              <span style="color: {% if m.sender_type == 'lecturer' %}var(--color-primary){% else %}var(--color-secondary){% endif %};">
+                {% if m.sender_type == 'lecturer' %}👨‍🏫 Dr. Christopher Boachie (You){% else %}👤 {{ m.sender_name }}{% endif %}
+              </span>
+              <span style="color: var(--color-text-muted); font-weight: 400;">{{ m.created_at|format_date('%b %d, %H:%M') }}</span>
+            </div>
+            <div>{{ m.message }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); font-style: italic; margin-bottom: 0.5rem;">No replies in thread yet.</p>
+        {% endif %}
+
+        <!-- Lecturer Reply Input Form -->
+        {% if t.status != 'Approved & Accepted' %}
+        <form action="{{ url_for('reply_thread') }}" method="POST" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="hidden" name="item_type" value="thesis">
+          <input type="hidden" name="item_id" value="{{ t.id }}">
+          <input type="hidden" name="redirect_url" value="{{ url_for('thesis') }}">
+          <input type="text" name="message" class="form-control" style="min-height: 38px; font-size: 0.85rem; flex: 1;" placeholder="Type reply message for student..." required>
+          <button type="submit" class="btn btn-primary btn-sm" style="min-height: 38px;">Send Reply</button>
+        </form>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: var(--color-text-muted); padding: 2.5rem; text-align: center;">No student thesis submissions logged yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

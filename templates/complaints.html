@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Formal Complaint - BoachieEdu{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 700;">Formal Complaint & Grievance Portal</h1>
+  <p style="color: var(--color-text-muted);">Log academic complaints, course feedback, or facility grievances directly to Dr. Christopher Boachie</p>
+</div>
+
+<div class="content-grid">
+  <!-- Complaint Submission Form -->
+  <div class="card">
+    <h2 class="card-title">📝 Submit Formal Complaint</h2>
+    <form action="{{ url_for('complaints') }}" method="POST">
+      <div class="form-group">
+        <label for="category" class="form-label">Complaint Category *</label>
+        <select id="category" name="category" class="form-select" required>
+          <option value="" disabled selected>-- Select Category --</option>
+          <option value="Grading & Assessment Query">Grading & Assessment Query</option>
+          <option value="Course Material / Syllabus Issue">Course Material / Syllabus Issue</option>
+          <option value="Lecture Timetable / Schedule Conflict">Lecture Timetable / Schedule Conflict</option>
+          <option value="Lecture Hall & Facility Issue">Lecture Hall & Facility Issue</option>
+          <option value="General Academic Grievance">General Academic Grievance</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="priority" class="form-label">Urgency Level *</label>
+        <select id="priority" name="priority" class="form-select" required>
+          <option value="Normal" selected>Normal Priority</option>
+          <option value="Medium">Medium Priority</option>
+          <option value="High">High Priority (Time-sensitive)</option>
+          <option value="Urgent">Urgent (Requires Immediate Intervention)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="details" class="form-label">Detailed Description *</label>
+        <textarea id="details" name="details" rows="5" class="form-control" placeholder="Provide a detailed explanation of the issue, dates, affected courses, and any relevant context..." required></textarea>
+      </div>
+
+      <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+        <input type="checkbox" id="is_anonymous" name="is_anonymous" style="width: auto; height: 18px; width: 18px;">
+        <label for="is_anonymous" class="form-label" style="margin-bottom: 0; font-weight: 500; cursor: pointer;">
+          Log this complaint anonymously (Your name & index number will be hidden)
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+        Log Formal Complaint &rarr;
+      </button>
+    </form>
+  </div>
+
+  <!-- Complaint History Tracker -->
+  <div class="card">
+    <h2 class="card-title">🔍 Complaint History & Resolution Tracker</h2>
+    {% if complaints %}
+      {% for c in complaints %}
+      <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1rem; background: var(--color-surface-hover);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--color-primary);">{{ c.category }}</h3>
+            {% if c.is_anonymous %}
+            <span style="font-size: 0.75rem; color: var(--color-text-muted); background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">Anonymous Submission</span>
+            {% endif %}
+          </div>
+          <span class="badge badge-pending">{{ c.status }}</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--color-secondary); margin-bottom: 0.5rem;">
+          {{ c.details }}
+        </p>
+        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--color-text-muted);">
+          <span>Priority: <strong>{{ c.priority }}</strong></span>
+          <span>Logged on {{ c.created_at|format_date('%b %d, %Y %H:%M') }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--color-text-muted); padding: 2rem; text-align: center;">No formal complaints logged.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

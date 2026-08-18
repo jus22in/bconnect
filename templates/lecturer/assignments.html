@@ -1,0 +1,147 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Course Assignments & Materials - Bconnect Workspace{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 800;">Course Assignment & Material Management</h1>
+  <p style="color: var(--color-text-muted);">Upload course assignment documents, preview attachments, set deadlines, and grade student answer submissions</p>
+</div>
+
+<div class="content-grid">
+  <!-- Upload Assignment Form -->
+  <div class="card">
+    <h2 class="card-title">📤 Upload Course Assignment / Material</h2>
+    <form action="{{ url_for('assignments') }}" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="upload_assignment">
+      
+      <div class="form-group">
+        <label for="course_code" class="form-label">Course Code & Name *</label>
+        <input type="text" id="course_code" name="course_code" class="form-control" placeholder="e.g. CS 401: Advanced Data Structures, FIN 305" required>
+      </div>
+
+      <div class="form-group">
+        <label for="target_level" class="form-label">Target Academic Level *</label>
+        <select id="target_level" name="target_level" class="form-select" required>
+          <option value="All Levels" selected>All Levels (General Course)</option>
+          <option value="Undergraduate Level 100">Undergraduate - Level 100</option>
+          <option value="Undergraduate Level 200">Undergraduate - Level 200</option>
+          <option value="Undergraduate Level 300">Undergraduate - Level 300</option>
+          <option value="Undergraduate Level 400">Undergraduate - Level 400</option>
+          <option value="Undergraduate Level 500">Undergraduate - Level 500</option>
+          <option value="Undergraduate Level 600">Undergraduate - Level 600</option>
+          <option value="Master's Student">Master's Student (MSc / MPhil)</option>
+          <option value="Ph.D. Student">Ph.D. Student</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="title" class="form-label">Assignment Title / Topic *</label>
+        <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Assignment 3: Algorithm Optimization Analysis" required>
+      </div>
+
+      <div class="form-group">
+        <label for="deadline" class="form-label">Specific Deadline (Date & Time) *</label>
+        <input type="datetime-local" id="deadline" name="deadline" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="assignment_file" class="form-label">Upload Assignment File (PDF, Word, Excel, PPT, ZIP) *</label>
+        <input type="file" id="assignment_file" name="assignment_file" class="form-control" accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.zip" required>
+        <div class="form-hint">Accepted formats: PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), ZIP</div>
+      </div>
+
+      <div class="form-group">
+        <label for="instructions" class="form-label">Student Instructions (Optional)</label>
+        <textarea id="instructions" name="instructions" rows="3" class="form-control" placeholder="Type optional guidelines, submission criteria, or formatting notes for students..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        Upload Assignment & Create Answer Upload Section &rarr;
+      </button>
+    </form>
+  </div>
+
+  <!-- Posted Course Assignments List -->
+  <div class="card">
+    <h2 class="card-title">📚 Posted Course Assignments ({{ course_assignments|length }})</h2>
+    {% if course_assignments %}
+      {% for ca in course_assignments %}
+      <div style="padding: 1rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1rem; background: var(--color-surface-hover);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-primary);">{{ ca.course_code }} - {{ ca.title }}</h3>
+          <span class="badge badge-info">{{ ca.target_level }}</span>
+        </div>
+        
+        <div style="font-size: 0.85rem; color: var(--color-secondary); margin-bottom: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+          <strong>File:</strong> <code>{{ ca.filename }}</code>
+          <button class="preview-btn" onclick="openDocPreview('{{ ca.filename }}', '{{ ca.course_code }}: {{ ca.title }}')">👁️ Preview File</button>
+          <span style="margin-left: 0.5rem;"><strong>Deadline:</strong> <span style="color: var(--color-danger); font-weight: 700;">{{ ca.deadline }}</span></span>
+        </div>
+
+        {% if ca.instructions %}
+        <div style="padding: 0.6rem; background: white; border: 1px solid var(--color-border); border-radius: 4px; font-size: 0.82rem; color: var(--color-secondary); margin-top: 0.35rem;">
+          <strong>Instructions:</strong> "{{ ca.instructions }}"
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align: center; padding: 2rem; background: var(--color-bg); border-radius: var(--radius-md); border: 2px dashed var(--color-border);">
+        <p style="font-size: 1rem; font-weight: 700; color: var(--color-secondary);">No Course Assignments Posted Yet</p>
+        <p style="font-size: 0.85rem; color: var(--color-text-muted);">Fill out the form on the left to upload an assignment for your students.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Student Uploaded Answers & Grading Section -->
+<div class="card" style="margin-top: 1.5rem;">
+  <h2 class="card-title">📥 Student Uploaded Answer Submissions ({{ student_submissions|length }})</h2>
+  {% if student_submissions %}
+    {% for s in student_submissions %}
+    <div style="padding: 1.25rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1.25rem; background: var(--color-surface-hover);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary);">{{ s.course_code }}: {{ s.assignment_title }}</h3>
+          <p style="font-size: 0.88rem; font-weight: 600; color: var(--color-secondary);">
+            Student: {{ s.full_name }} (ID: <code>{{ s.index_number }}</code>) &bull; Course: {{ s.enrolled_course }}
+          </p>
+        </div>
+        <span class="badge {% if s.grade %}badge-success{% else %}badge-pending{% endif %}">
+          {% if s.grade %}Grade: {{ s.grade }}{% else %}Pending Grade{% endif %}
+        </span>
+      </div>
+
+      <div style="font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 0.75rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+        <strong>Uploaded Answer File:</strong> <code>{{ s.filename }}</code>
+        <button class="preview-btn" onclick="openDocPreview('{{ s.filename }}', 'Student Answer: {{ s.full_name }}')">👁️ Preview Student Answer</button>
+        <span style="color: var(--color-text-muted); font-size: 0.8rem; margin-left: 0.5rem;">Submitted: {{ s.submitted_at|format_date('%b %d, %Y %H:%M') }}</span>
+      </div>
+
+      <!-- Grade & Feedback Form -->
+      <form action="{{ url_for('assignments') }}" method="POST" style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-primary-border);">
+        <input type="hidden" name="action" value="grade_submission">
+        <input type="hidden" name="submission_id" value="{{ s.id }}">
+        
+        <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;">
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Grade / Mark *</label>
+            <input type="text" name="grade" class="form-control" style="min-height: 40px; font-size: 0.88rem;" placeholder="e.g. 95/100, Grade A" value="{{ s.grade or '' }}" required>
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Lecturer Feedback Notes</label>
+            <input type="text" name="lecturer_feedback" class="form-control" style="min-height: 40px; font-size: 0.88rem;" placeholder="Write feedback comments for student..." value="{{ s.lecturer_feedback or '' }}">
+          </div>
+          <div>
+            <button type="submit" class="btn btn-primary btn-sm" style="min-height: 40px;">Save Grade & Feedback &rarr;</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: var(--color-text-muted); text-align: center; padding: 2.5rem;">No student answer submissions uploaded yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

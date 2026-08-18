@@ -1,0 +1,132 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Student Approvals & Roster - Bconnect Workspace{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 800;">Student Roster & Account Approvals</h1>
+  <p style="color: var(--color-text-muted);">Review and approve new student account registrations, manage course groupings, and view student profiles</p>
+</div>
+
+<!-- Pending Account Approvals Card with Accept All Option -->
+{% if pending_students %}
+<div class="card" style="border: 2px solid #f59e0b; background: #fffbeb; margin-bottom: 1.75rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; color: #b45309; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+      <span>⏳ Pending Account Registrations ({{ pending_students|length }})</span>
+    </h2>
+
+    <!-- ACCEPT ALL PENDING REGISTRATIONS BUTTON -->
+    <form action="{{ url_for('approve_all_students') }}" method="POST" style="margin: 0;" onsubmit="return confirm('Approve all {{ pending_students|length }} pending student registrations at once?');">
+      <input type="hidden" name="redirect_url" value="{{ url_for('students') }}">
+      <button type="submit" class="btn btn-primary" style="background: #16a34a; border-color: #15803d; font-size: 0.9rem; font-weight: 800; padding: 0.5rem 1.25rem;">
+        ✓ Accept / Approve All ({{ pending_students|length }})
+      </button>
+    </form>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+    {% for s in pending_students %}
+    <div style="padding: 1rem; background: white; border: 1.5px solid #fcd34d; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+      <div>
+        <div style="font-weight: 800; font-size: 1.05rem; color: var(--color-primary);">
+          {{ s.full_name }} (Index No: <code>{{ s.index_number }}</code>)
+        </div>
+        <div style="font-size: 0.88rem; color: var(--color-secondary); margin-top: 2px;">
+          Enrolled Course: <strong>{{ s.enrolled_course }}</strong> &bull; Level: <strong>{{ s.student_level }}</strong> &bull; Phone: {{ s.phone_number }}
+        </div>
+        <div style="font-size: 0.78rem; color: var(--color-text-muted); margin-top: 2px;">
+          Registered: {{ s.created_at|format_date('%b %d, %Y %H:%M') }}
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <form action="{{ url_for('approve_student') }}" method="POST" style="margin: 0;">
+          <input type="hidden" name="user_id" value="{{ s.id }}">
+          <input type="hidden" name="action" value="approve">
+          <input type="hidden" name="redirect_url" value="{{ url_for('students') }}">
+          <button type="submit" class="btn btn-primary btn-sm" style="background: #16a34a; border-color: #15803d;">✓ Approve Student</button>
+        </form>
+        <form action="{{ url_for('approve_student') }}" method="POST" style="margin: 0;">
+          <input type="hidden" name="user_id" value="{{ s.id }}">
+          <input type="hidden" name="action" value="reject">
+          <input type="hidden" name="redirect_url" value="{{ url_for('students') }}">
+          <button type="submit" class="btn btn-outline btn-sm" style="color: var(--color-danger); border-color: var(--color-primary-border);">✗ Decline</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Search Bar -->
+<div class="card" style="margin-bottom: 1.5rem;">
+  <form action="{{ url_for('students') }}" method="GET" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+    <input type="text" name="search" class="form-control" style="flex: 1; min-width: 260px;" placeholder="Search student by name, index number, phone, level, or course..." value="{{ search }}">
+    <button type="submit" class="btn btn-primary">Search Roster</button>
+    {% if search %}
+    <a href="{{ url_for('students') }}" class="btn btn-outline">Clear Search</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Approved Student Roster Groupings -->
+<div class="content-grid">
+  <!-- Grouped by Course -->
+  <div class="card">
+    <h2 class="card-title">📚 Grouped by Enrolled Course ({{ by_course|length }})</h2>
+    {% if by_course %}
+      {% for course_name, students_list in by_course.items() %}
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-weight: 800; font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid var(--color-primary-border); display: flex; justify-content: space-between;">
+          <span>📖 {{ course_name }}</span>
+          <span class="badge badge-info">{{ students_list|length }} Students</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          {% for s in students_list %}
+          <div style="padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface-hover); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="font-size: 0.92rem; color: var(--color-primary);">{{ s.full_name }}</strong>
+              <div style="font-size: 0.8rem; color: var(--color-text-muted);">ID: <code>{{ s.index_number }}</code> &bull; Level: {{ s.student_level }}</div>
+            </div>
+            <a href="{{ url_for('student_hub', student_id=s.id) }}" class="btn btn-outline btn-sm">View Dossier &rarr;</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--color-text-muted); font-size: 0.88rem;">No approved students found in this category.</p>
+    {% endif %}
+  </div>
+
+  <!-- Grouped by Academic Level -->
+  <div class="card">
+    <h2 class="card-title">🎓 Grouped by Academic Level ({{ by_level|length }})</h2>
+    {% if by_level %}
+      {% for level_name, students_list in by_level.items() %}
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-weight: 800; font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid var(--color-primary-border); display: flex; justify-content: space-between;">
+          <span>🎓 {{ level_name }}</span>
+          <span class="badge badge-success">{{ students_list|length }} Students</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          {% for s in students_list %}
+          <div style="padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface-hover); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="font-size: 0.92rem; color: var(--color-primary);">{{ s.full_name }}</strong>
+              <div style="font-size: 0.8rem; color: var(--color-text-muted);">Course: {{ s.enrolled_course }} &bull; Phone: {{ s.phone_number }}</div>
+            </div>
+            <a href="{{ url_for('student_hub', student_id=s.id) }}" class="btn btn-outline btn-sm">View Dossier &rarr;</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--color-text-muted); font-size: 0.88rem;">No approved students found in this category.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,510 @@
+{% extends 'base.html' %}
+
+{% block title %}Office Hours & Live Online Classes - Bconnect{% endblock %}
+
+{% block content %}
+<style>
+  /* Google Meet / MS Teams Style Classroom UI */
+  .meet-container {
+    background: #0f172a;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    color: white;
+    box-shadow: var(--shadow-lg);
+  }
+  .meet-header {
+    background: #1e293b;
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+  }
+  .meet-body {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    height: 480px;
+  }
+  @media (max-width: 900px) {
+    .meet-body {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+  }
+  .video-stage {
+    background: #090d16;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+  }
+  .video-card {
+    background: #1e293b;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #334155;
+  }
+  .video-card video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .video-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 800;
+  }
+  .video-label {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .meet-controls {
+    background: #1e293b;
+    padding: 0.85rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.85rem;
+    border-top: 1px solid #334155;
+    flex-wrap: wrap;
+  }
+  .ctrl-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: #334155;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .ctrl-btn:hover {
+    background: #475569;
+    transform: scale(1.05);
+  }
+  .ctrl-btn.active {
+    background: #dc2626;
+  }
+  .meet-sidebar {
+    background: #1e293b;
+    border-left: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-header {
+    padding: 0.85rem;
+    border-bottom: 1px solid #334155;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #94a3b8;
+  }
+  .chat-messages {
+    flex: 1;
+    padding: 0.85rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .chat-msg {
+    background: #334155;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+  }
+</style>
+
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 700;">Office Hours Meetings & Live Online Classes</h1>
+  <p style="color: var(--color-text-muted);">Join Dr. Christopher Boachie's Live Video Classroom (Google Meet / Teams style) with camera & audio controls, or book 1-on-1 office hours</p>
+</div>
+
+<!-- ========================================== -->
+<!-- SECTION 1: LIVE ONLINE VIDEO CLASSROOM (WEBRTC) -->
+<!-- ========================================== -->
+<div class="card" style="margin-bottom: 2rem; border: 2px solid var(--color-primary);">
+  <h2 class="card-title" style="display: flex; align-items: center; justify-content: space-between;">
+    <span>🔴 Dr. Boachie's Live Online Classes</span>
+    <span class="badge badge-info">Interactive Video & Audio Room</span>
+  </h2>
+
+  {% if online_classes %}
+    {% for oc in online_classes %}
+    <div style="padding: 1.25rem; border: 1.5px solid var(--color-primary-border); border-radius: var(--radius-md); margin-bottom: 1.25rem; background: var(--color-surface);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--color-primary);">{{ oc.course_code }}: {{ oc.topic }}</h3>
+          <div style="font-size: 0.88rem; color: var(--color-secondary); margin-top: 3px;">
+            <strong>Scheduled Start:</strong> {{ oc.start_time }} &bull; <strong>Duration:</strong> <span style="font-weight: 700; color: var(--color-primary);">{{ oc.duration }}</span> &bull; <strong>Ends:</strong> {{ oc.end_time }}
+          </div>
+        </div>
+
+        <div>
+          {% if oc.status == 'Scheduled' %}
+            <span class="badge badge-warning" style="font-size: 0.88rem; padding: 0.4rem 0.85rem;">🔒 Class Room Locked</span>
+          {% elif oc.status == 'Live Now' %}
+            <span class="badge badge-success" style="font-size: 0.88rem; padding: 0.4rem 0.85rem; background: #16a34a;">🔴 LIVE CLASS SESSION OPEN</span>
+          {% else %}
+            <span class="badge badge-secondary" style="font-size: 0.88rem; padding: 0.4rem 0.85rem;">Ended</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if oc.agenda %}
+      <div style="padding: 0.75rem; background: white; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 1rem;">
+        <strong>Class Agenda & Instructions:</strong> {{ oc.agenda }}
+      </div>
+      {% endif %}
+
+      <!-- STATE A: CLASS IS SCHEDULED (LOCKED ROOM) -->
+      {% if oc.status == 'Scheduled' %}
+        <div style="background: #fffbeb; padding: 1.25rem; border-radius: var(--radius-md); border: 2px dashed #fcd34d; text-align: center;">
+          <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">🔒</div>
+          <h4 style="font-size: 1.05rem; font-weight: 800; color: #b45309; margin-bottom: 0.35rem;">Live Online Class Room Currently Locked</h4>
+          <p style="font-size: 0.88rem; color: #92400e; max-width: 580px; margin: 0 auto;">
+            This class is scheduled for <strong>{{ oc.start_time }}</strong> (Duration: {{ oc.duration }}). A broadcast notification has been registered. The Join Room button will unlock as soon as Dr. Christopher Boachie starts the live session.
+          </p>
+        </div>
+
+      <!-- STATE B: CLASS IS LIVE NOW -->
+      {% elif oc.status == 'Live Now' %}
+        
+        <!-- B1: STUDENT HAS NOT REQUESTED OR IS EXPIRED -->
+        {% if not oc.join_request or oc.join_request.status in ['Expired', 'Denied'] %}
+          <div style="background: #f0fdf4; padding: 1.25rem; border-radius: var(--radius-md); border: 2px solid #86efac; text-align: center;">
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: #166534; margin-bottom: 0.35rem;">🔴 Live Video Session in Progress</h4>
+            <p style="font-size: 0.88rem; color: #15803d; margin-bottom: 1rem;">
+              {% if oc.attendance and oc.attendance.last_left_at %}
+                ⚠️ <strong>Reentry Request:</strong> You previously attended this session. Joining again requires Dr. Boachie's reentry approval.
+              {% else %}
+                Click below to send an entry approval request to Dr. Christopher Boachie's Waiting Room.
+              {% endif %}
+            </p>
+
+            <form action="{{ url_for('request_class_join') }}" method="POST">
+              <input type="hidden" name="class_id" value="{{ oc.id }}">
+              <button type="submit" class="btn btn-primary" style="font-size: 1rem; padding: 0.75rem 1.75rem; font-weight: 800; background: #16a34a; border-color: #15803d;">
+                ✋ Request Entry to Live Class &rarr;
+              </button>
+            </form>
+          </div>
+
+        <!-- B2: STUDENT IS IN VIRTUAL WAITING ROOM (PENDING APPROVAL) -->
+        {% elif oc.join_request.status == 'Pending' %}
+          <div style="background: #eff6ff; padding: 1.25rem; border-radius: var(--radius-md); border: 2px solid #93c5fd; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.35rem;">⏳</div>
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e40af; margin-bottom: 0.35rem;">In Virtual Waiting Room...</h4>
+            <p style="font-size: 0.88rem; color: #1e3a8a; margin: 0;">
+              Your join request ({{ oc.join_request.request_type }}) has been sent to Dr. Boachie's live screen. You will gain access as soon as Dr. Boachie approves your entry!
+            </p>
+          </div>
+
+        <!-- B3: STUDENT ENTRY APPROVED (FULL GOOGLE MEET / TEAMS STYLE VIDEO CLASSROOM) -->
+        {% elif oc.join_request.status == 'Approved' %}
+          <div class="meet-container">
+            <!-- Header Bar -->
+            <div class="meet-header">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e;"></span>
+                <span style="font-weight: 800; font-size: 0.95rem;">🔴 Live Session: {{ oc.course_code }} - {{ oc.topic }}</span>
+              </div>
+
+              <form action="{{ url_for('leave_class') }}" method="POST" style="margin: 0;">
+                <input type="hidden" name="class_id" value="{{ oc.id }}">
+                <button type="submit" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #ef4444; background: rgba(239, 68, 68, 0.1);">
+                  🚪 Leave Class
+                </button>
+              </form>
+            </div>
+
+            <!-- Video Stage & In-Class Chat Sidebar -->
+            <div class="meet-body">
+              <!-- Left: Video Grid Stage -->
+              <div class="video-stage">
+                <div class="video-grid">
+                  <!-- Lecturer Feed Card -->
+                  <div class="video-card" id="lecturerVidCard">
+                    <div class="video-avatar">DB</div>
+                    <div class="video-label">
+                      <span>👨‍🏫 Dr. Christopher Boachie (Host)</span>
+                    </div>
+                  </div>
+
+                  <!-- Student Local Camera Feed Card -->
+                  <div class="video-card" id="studentVidCard">
+                    <video id="studentCamStream" autoplay playsinline muted style="display: none;"></video>
+                    <div class="video-avatar" id="studentAvatar">{{ user.full_name[:2]|upper }}</div>
+                    <div class="video-label">
+                      <span id="studentCamStatus">📷 Camera Off</span> &bull; <span>{{ user.full_name }} (You)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Live Class Sidebar & Chat -->
+              <div class="meet-sidebar">
+                <div class="sidebar-header">💬 In-Class Live Chat</div>
+                <div class="chat-messages" id="liveChatBox">
+                  <div class="chat-msg">
+                    <strong style="color: #60a5fa;">System:</strong> Connected to live classroom stream.
+                  </div>
+                </div>
+
+                <div style="padding: 0.65rem; border-top: 1px solid #334155; display: flex; gap: 0.35rem;">
+                  <input type="text" id="liveChatInput" class="form-control" style="font-size: 0.8rem; background: #0f172a; border-color: #334155; color: white; min-height: 36px;" placeholder="Type chat message...">
+                  <button onclick="sendLiveChatMessage('{{ user.full_name }}')" class="btn btn-primary btn-sm" style="min-height: 36px;">Send</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Floating Control Bar -->
+            <div class="meet-controls">
+              <button class="ctrl-btn" id="btnToggleMic" onclick="toggleMicrophone()" title="Toggle Microphone">
+                🎤
+              </button>
+              <button class="ctrl-btn" id="btnToggleCam" onclick="toggleWebcam()" title="Toggle Camera">
+                📹
+              </button>
+              <button class="ctrl-btn" id="btnShareScreen" onclick="shareScreenStream()" title="Share Screen">
+                🖥️
+              </button>
+              <button class="ctrl-btn" id="btnRaiseHand" onclick="raiseHandInClass('{{ user.full_name }}')" title="Raise Hand">
+                ✋
+              </button>
+            </div>
+          </div>
+        {% endif %}
+
+      <!-- STATE C: CLASS ENDED -->
+      {% else %}
+        <div style="padding: 0.85rem; background: var(--color-surface-hover); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--color-text-muted);">
+          🏁 Live Class session completed. Attendance records logged for Dr. Boachie.
+        </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: var(--color-text-muted); font-size: 0.88rem; font-style: italic;">No online classes scheduled yet by Dr. Boachie.</p>
+  {% endif %}
+</div>
+
+<!-- ========================================== -->
+<!-- SECTION 2: OFFICE HOURS CONSULTATION MEETINGS -->
+<!-- ========================================== -->
+<div class="content-grid">
+  <!-- Booking Form -->
+  <div class="card">
+    <h2 class="card-title">📅 Book Office Hours Consultation</h2>
+    
+    {% if booking_allowed %}
+      <form action="{{ url_for('meetings') }}" method="POST">
+        <input type="hidden" name="action" value="book_meeting">
+
+        <div class="form-group">
+          <label for="availability_id" class="form-label">Select Dr. Boachie's Assigned Available Slot *</label>
+          <select id="availability_id" name="availability_id" class="form-select" required>
+            <option value="" disabled selected>-- Choose from Active Assigned Slots --</option>
+            {% for slot in active_slots %}
+            <option value="{{ slot.id }}">
+              {{ slot.available_date }} @ {{ slot.time_slot }} ({{ slot.week_label }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="topic" class="form-label">Consultation Subject / Topic *</label>
+          <input type="text" id="topic" name="topic" class="form-control" placeholder="e.g. Thesis Methodology Advice or Assignment 2 Review" required>
+        </div>
+
+        <div class="form-group">
+          <label for="notes" class="form-label">Additional Details / Questions (Optional)</label>
+          <textarea id="notes" name="notes" rows="3" class="form-control" placeholder="Provide background details for Dr. Boachie..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          Submit Meeting Request &rarr;
+        </button>
+      </form>
+    {% else %}
+      <div style="padding: 2rem; background: #fffbeb; border-radius: var(--radius-md); border: 2px dashed #fcd34d; text-align: center;">
+        <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">🔒</div>
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: #b45309; margin-bottom: 0.35rem;">Weekly Booking Currently Closed</h3>
+        <p style="font-size: 0.88rem; color: #92400e; margin: 0;">
+          Dr. Christopher Boachie has not assigned meeting slots for this week yet. Notifications will be sent out as soon as Dr. Boachie assigns available office hours.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Booked Meetings History -->
+  <div class="card">
+    <h2 class="card-title">📋 Your Consultation Bookings History</h2>
+    {% if meetings %}
+      {% for m in meetings %}
+      <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1rem; background: var(--color-surface-hover);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--color-primary);">Topic: {{ m.topic }}</h3>
+          <span class="badge {% if m.status == 'Declined' %}badge-danger{% elif m.status == 'Approved' %}badge-approved{% else %}badge-warning{% endif %}">
+            {{ m.status }}
+          </span>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--color-secondary); margin-bottom: 0.35rem;">
+          <strong>Date/Time:</strong> {{ m.preferred_date }} at {{ m.preferred_time }}
+        </div>
+
+        {% if m.notes %}
+        <div style="font-size: 0.82rem; color: var(--color-text-muted); font-style: italic; margin-bottom: 0.5rem;">
+          "{{ m.notes }}"
+        </div>
+        {% endif %}
+
+        {% if m.lecturer_response %}
+        <div style="padding: 0.6rem; background: white; border-left: 3px solid var(--color-primary); border-radius: 4px; font-size: 0.85rem; color: var(--color-secondary); margin-bottom: 0.5rem;">
+          <strong>Dr. Boachie's Response:</strong> {{ m.lecturer_response }}
+        </div>
+        {% endif %}
+
+        {% if m.status == 'Declined' and m.is_final == 1 %}
+        <div style="font-size: 0.8rem; color: var(--color-danger); font-weight: 700; margin-top: 0.35rem;">
+          🔒 Meeting request declined & final. No further review allowed. Please book a new slot.
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--color-text-muted); padding: 2rem; text-align: center;">No consultation meeting bookings recorded yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  let localStream = null;
+  let isMicOn = false;
+  let isCamOn = false;
+
+  async function toggleWebcam() {
+    const video = document.getElementById('studentCamStream');
+    const avatar = document.getElementById('studentAvatar');
+    const status = document.getElementById('studentCamStatus');
+    const btn = document.getElementById('btnToggleCam');
+
+    if (!isCamOn) {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: isMicOn });
+        video.srcObject = localStream;
+        video.style.display = 'block';
+        avatar.style.display = 'none';
+        status.textContent = '📹 Camera On';
+        btn.classList.remove('active');
+        isCamOn = true;
+      } catch (err) {
+        alert('Could not access camera device: ' + err.message);
+      }
+    } else {
+      if (localStream) {
+        localStream.getVideoTracks().forEach(track => track.stop());
+      }
+      video.style.display = 'none';
+      avatar.style.display = 'flex';
+      status.textContent = '📷 Camera Off';
+      btn.classList.add('active');
+      isCamOn = false;
+    }
+  }
+
+  async function toggleMicrophone() {
+    const btn = document.getElementById('btnToggleMic');
+    if (!isMicOn) {
+      try {
+        if (!localStream) {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isCamOn });
+        } else {
+          const audioTrack = await navigator.mediaDevices.getUserMedia({ audio: true });
+          localStream.addTrack(audioTrack.getAudioTracks()[0]);
+        }
+        btn.classList.remove('active');
+        isMicOn = true;
+        alert('🎤 Microphone unmuted!');
+      } catch (err) {
+        alert('Could not access microphone: ' + err.message);
+      }
+    } else {
+      if (localStream) {
+        localStream.getAudioTracks().forEach(track => track.stop());
+      }
+      btn.classList.add('active');
+      isMicOn = false;
+      alert('🔇 Microphone muted.');
+    }
+  }
+
+  async function shareScreenStream() {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const video = document.getElementById('studentCamStream');
+      const avatar = document.getElementById('studentAvatar');
+      video.srcObject = screenStream;
+      video.style.display = 'block';
+      avatar.style.display = 'none';
+      alert('🖥️ Screen sharing active in Live Class stream!');
+    } catch (err) {
+      console.log('Screen share cancelled or failed:', err);
+    }
+  }
+
+  function raiseHandInClass(studentName) {
+    alert('✋ Hand raised! Dr. Boachie has been notified.');
+    sendLiveChatMessage(studentName + ' ✋ raised hand.');
+  }
+
+  function sendLiveChatMessage(senderName) {
+    const input = document.getElementById('liveChatInput');
+    const box = document.getElementById('liveChatBox');
+    if (!input.value.trim()) return;
+
+    const div = document.createElement('div');
+    div.className = 'chat-msg';
+    div.innerHTML = `<strong style="color:#60a5fa;">${senderName}:</strong> ${input.value.trim()}`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    input.value = '';
+  }
+</script>
+{% endblock %}

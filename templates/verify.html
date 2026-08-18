@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Account - BoachieEdu{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Phone Account Verification</h1>
+      <p>Enter the 6-digit SMS verification code sent to <strong>{{ user.phone_number }}</strong></p>
+    </div>
+
+    <!-- Simulated SMS Message Banner for easy testing -->
+    <div class="sms-banner">
+      <div style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600; text-transform: uppercase;">
+        📱 Simulated SMS Message Received
+      </div>
+      <div style="font-size: 0.9rem; color: var(--color-secondary); margin-top: 0.25rem;">
+        "Your BoachieEdu verification code for <strong>{{ user.full_name }}</strong> is:"
+      </div>
+      <div class="sms-code">{{ user.otp_code }}</div>
+      <div style="font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.35rem;">
+        Sent to {{ user.phone_number }}
+      </div>
+    </div>
+
+    <form action="{{ url_for('verify', user_id=user.id) }}" method="POST">
+      <div class="form-group">
+        <label for="otp_code" class="form-label" style="text-align: center; display: block;">Enter 6-Digit Verification Code</label>
+        <input type="text" id="otp_code" name="otp_code" class="form-control" placeholder="123456" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.3rem; font-weight: 700;" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+        Verify Phone & Activate Account &rarr;
+      </button>
+
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--color-text-muted);">
+        Didn't receive SMS? <a href="#" onclick="alert('Verification code resent to {{ user.phone_number }}: {{ user.otp_code }}'); return false;" style="font-weight: 600;">Resend SMS Code</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

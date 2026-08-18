@@ -1,0 +1,64 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Academic Requests - Dr. Boachie Admin{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 800;">Academic Requests & Endorsements</h1>
+  <p style="color: var(--color-text-muted);">Review student recommendation letter requests and academic endorsements</p>
+</div>
+
+<div class="card">
+  <h2 class="card-title">📄 Student Academic Requests</h2>
+  {% if requests %}
+    {% for r in requests %}
+    <div style="padding: 1.25rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 1.25rem; background: var(--color-surface-hover);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);">{{ r.request_type }}</h3>
+          <p style="font-size: 0.9rem; font-weight: 600; color: var(--color-secondary);">
+            Student: {{ r.full_name }} (ID: <code>{{ r.index_number }}</code>) &bull; Level: {{ r.student_level }} &bull; Course: {{ r.enrolled_course }}
+          </p>
+        </div>
+        <span class="badge badge-info" style="font-size: 0.85rem;">{{ r.status }}</span>
+      </div>
+
+      <div style="font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 0.5rem;">
+        <strong>Target Purpose / Institution:</strong> {{ r.purpose }} &bull; <strong>Submitted:</strong> {{ r.created_at|format_date('%b %d, %Y') }}
+      </div>
+
+      {% if r.details %}
+      <div style="padding: 0.85rem; background: white; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.88rem; color: var(--color-secondary); margin-bottom: 1rem;">
+        <strong>Additional Details:</strong> "{{ r.details }}"
+      </div>
+      {% endif %}
+
+      <!-- Action Form -->
+      <form action="{{ url_for('academic_requests') }}" method="POST" style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-primary-border);">
+        <input type="hidden" name="request_id" value="{{ r.id }}">
+        
+        <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;">
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Status</label>
+            <select name="status" class="form-select" style="min-height: 40px; font-size: 0.88rem;">
+              <option value="Under Review" {% if r.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+              <option value="Completed & Letter Issued" {% if r.status == 'Completed & Letter Issued' %}selected{% endif %}>Completed & Letter Issued</option>
+              <option value="Declined" {% if r.status == 'Declined' %}selected{% endif %}>Declined</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 0.8rem;">Lecturer Response / Delivery Notes</label>
+            <input type="text" name="lecturer_response" class="form-control" style="min-height: 40px; font-size: 0.88rem;" placeholder="e.g. Recommendation letter signed and emailed directly to recipient." value="{{ r.lecturer_response or '' }}">
+          </div>
+          <div>
+            <button type="submit" class="btn btn-primary btn-sm" style="min-height: 40px;">Save Request Status</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: var(--color-text-muted); text-align: center; padding: 2.5rem;">No academic recommendation or transcript requests submitted.</p>
+  {% endif %}
+</div>
+{% endblock %}

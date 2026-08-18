@@ -1,0 +1,222 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Student Data Hub - 360° Academic Records - Bconnect Workspace{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.75rem; color: var(--color-primary); font-weight: 800;">📊 Student Data Hub & 360° Academic Dossier</h1>
+  <p style="color: var(--color-text-muted);">Centralized archive of all student profiles, course groupings, assignments, theses, complaints, and booking history</p>
+</div>
+
+<!-- Search Bar -->
+<div class="card" style="margin-bottom: 1.5rem;">
+  <form action="{{ url_for('student_hub') }}" method="GET" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+    <input type="text" name="search" class="form-control" style="flex: 1; min-width: 260px;" placeholder="Search student by name, index number, phone, level, or course..." value="{{ search }}">
+    <button type="submit" class="btn btn-primary">Search Data Hub</button>
+    {% if search or selected_student %}
+    <a href="{{ url_for('student_hub') }}" class="btn btn-outline">Clear View</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="content-grid" style="grid-template-columns: 1fr 2fr;">
+  <!-- Left Column: Student Roster Grouped by Course & Level -->
+  <div>
+    <div class="card" style="margin-bottom: 1.25rem;">
+      <h2 class="card-title">📚 Course Groupings ({{ by_course|length }})</h2>
+      {% if by_course %}
+        {% for course_name, students_list in by_course.items() %}
+        <div style="margin-bottom: 1rem;">
+          <div style="font-weight: 800; font-size: 0.92rem; color: var(--color-primary); margin-bottom: 0.35rem; display: flex; justify-content: space-between;">
+            <span>📖 {{ course_name }}</span>
+            <span class="badge badge-info">{{ students_list|length }}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+            {% for s in students_list %}
+            <a href="{{ url_for('student_hub', student_id=s.id, search=search) }}" style="padding: 0.6rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: {% if selected_student and selected_student.id == s.id %}var(--color-primary-light){% else %}white{% endif %}; text-decoration: none; color: var(--color-secondary); display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 0.88rem;">{{ s.full_name }}</strong>
+                <div style="font-size: 0.75rem; color: var(--color-text-muted);">ID: {{ s.index_number }} &bull; {{ s.student_level }}</div>
+              </div>
+              <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-primary);">&rarr;</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color: var(--color-text-muted); font-size: 0.85rem;">No students found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Column: 360° Academic Dossier View -->
+  <div>
+    {% if selected_student %}
+    <div class="card" style="border: 2px solid var(--color-primary);">
+      <!-- Student Header Profile -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; padding-bottom: 1rem; border-bottom: 2px solid var(--color-border); margin-bottom: 1.25rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;">
+              {{ selected_student.full_name[:2]|upper }}
+            </div>
+            <div>
+              <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--color-primary); margin: 0;">{{ selected_student.full_name }}</h2>
+              <p style="font-size: 0.9rem; font-weight: 700; color: var(--color-secondary); margin: 0;">
+                Index Number: <code>{{ selected_student.index_number }}</code> &bull; Phone: {{ selected_student.phone_number }}
+              </p>
+            </div>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.35rem;">
+            Enrolled Course: <strong>{{ selected_student.enrolled_course }}</strong> &bull; Level: <strong>{{ selected_student.student_level }}</strong>
+          </div>
+        </div>
+
+        <span class="badge {% if selected_student.approval_status == 'Approved' %}badge-approved{% else %}badge-warning{% endif %}" style="font-size: 0.9rem; font-weight: 800;">
+          {{ selected_student.approval_status }}
+        </span>
+      </div>
+
+      <!-- Direct Profile Feedback Note Form -->
+      <div style="background: var(--color-surface-hover); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.5rem;">💬 Direct Lecturer Profile Note</h3>
+        <form action="{{ url_for('student_hub') }}" method="POST" style="display: flex; gap: 0.5rem;">
+          <input type="hidden" name="user_id" value="{{ selected_student.id }}">
+          <input type="text" name="lecturer_notes" class="form-control" placeholder="Write feedback note for this student's profile..." value="{{ selected_student.lecturer_notes or '' }}" required>
+          <button type="submit" class="btn btn-primary btn-sm">Save Note</button>
+        </form>
+      </div>
+
+      <!-- 1. All Submitted Assignments -->
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.65rem;">📚 Course Assignment Submissions ({{ student_assignments|length }})</h3>
+        {% if student_assignments %}
+          {% for a in student_assignments %}
+          <div style="padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-bottom: 0.5rem; background: white;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem;">
+              <span>{{ a.course_code }}: {{ a.assignment_title }}</span>
+              <span class="badge {% if a.grade %}badge-success{% else %}badge-pending{% endif %}">{% if a.grade %}Grade: {{ a.grade }}{% else %}{{ a.status }}{% endif %}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 3px; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+              File: <code>{{ a.filename }}</code>
+              <button class="preview-btn" onclick="openDocPreview('{{ a.filename }}', '{{ selected_student.full_name }}: {{ a.assignment_title }}')">👁️ Preview Answer</button>
+              <span style="margin-left: 0.5rem;">Submitted: {{ a.submitted_at|format_date('%b %d, %Y %H:%M') }}</span>
+            </div>
+            {% if a.lecturer_feedback %}
+            <div style="font-size: 0.8rem; color: var(--color-secondary); font-style: italic; margin-top: 3px;">
+              Feedback: "{{ a.lecturer_feedback }}"
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); font-style: italic;">No assignment submissions logged.</p>
+        {% endif %}
+      </div>
+
+      <!-- 2. All Thesis Submissions -->
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.65rem;">🎓 Thesis & Research Submissions ({{ student_theses|length }})</h3>
+        {% if student_theses %}
+          {% for t in student_theses %}
+          <div style="padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-bottom: 0.5rem; background: white;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem;">
+              <span>{{ t.title }} ({{ t.stage }})</span>
+              <span class="badge badge-info">{{ t.status }}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 3px; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+              File: <code>{{ t.filename }}</code>
+              <button class="preview-btn" onclick="openDocPreview('{{ t.filename }}', 'Thesis: {{ t.title }} ({{ selected_student.full_name }})')">👁️ Preview Thesis</button>
+              <span style="margin-left: 0.5rem;">Abstract: {{ t.abstract[:70] }}...</span>
+            </div>
+            {% if t.supervisor_feedback %}
+            <div style="font-size: 0.8rem; color: #b45309; margin-top: 3px;">
+              Supervisor Notes: "{{ t.supervisor_feedback }}"
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); font-style: italic;">No thesis drafts uploaded.</p>
+        {% endif %}
+      </div>
+
+      <!-- 3. All Booked Meetings History -->
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.65rem;">📅 Office Hours Meetings History ({{ student_meetings|length }})</h3>
+        {% if student_meetings %}
+          {% for m in student_meetings %}
+          <div style="padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-bottom: 0.5rem; background: white;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem;">
+              <span>Topic: {{ m.topic }}</span>
+              <span class="badge {% if m.status == 'Declined' %}badge-danger{% elif m.status == 'Approved' %}badge-approved{% else %}badge-pending{% endif %}">{{ m.status }}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 3px;">
+              Date/Time: {{ m.preferred_date }} at {{ m.preferred_time }}
+            </div>
+            {% if m.lecturer_response %}
+            <div style="font-size: 0.8rem; color: var(--color-secondary); margin-top: 3px;">
+              Response: "{{ m.lecturer_response }}"
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); font-style: italic;">No meeting bookings recorded.</p>
+        {% endif %}
+      </div>
+
+      <!-- 4. All Formal Complaints -->
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.65rem;">📝 Formal Complaints Logged ({{ student_complaints|length }})</h3>
+        {% if student_complaints %}
+          {% for c in student_complaints %}
+          <div style="padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-bottom: 0.5rem; background: white;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem;">
+              <span>{{ c.category }} ({{ c.priority }} Priority)</span>
+              <span class="badge badge-warning">{{ c.status }}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 3px;">
+              Details: "{{ c.details }}"
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); font-style: italic;">No complaints logged.</p>
+        {% endif %}
+      </div>
+
+      <!-- 5. All Academic Requests -->
+      <div>
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.65rem;">📄 Academic Requests ({{ student_requests|length }})</h3>
+        {% if student_requests %}
+          {% for r in student_requests %}
+          <div style="padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-bottom: 0.5rem; background: white;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem;">
+              <span>{{ r.request_type }}</span>
+              <span class="badge badge-info">{{ r.status }}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 3px;">
+              Purpose: {{ r.purpose }}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); font-style: italic;">No academic requests submitted.</p>
+        {% endif %}
+      </div>
+
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem 2rem; background: white; border: 2px dashed var(--color-border); border-radius: var(--radius-lg);">
+      <div style="font-size: 3rem; margin-bottom: 0.5rem;">📂</div>
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.5rem;">Select a Student to View 360° Dossier</h3>
+      <p style="font-size: 0.9rem; color: var(--color-text-muted); max-width: 420px; margin: 0 auto;">
+        Use the search bar above or click any student in the course list on the left to view their complete academic history, index number, assignments, theses, complaints, and bookings.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

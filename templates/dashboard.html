@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - BoachieEdu{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="dashboard-hero">
+  <div>
+    <h2>Welcome, {{ user.full_name }}! 👋</h2>
+    <p style="margin-bottom: 0.5rem;">
+      Index No: <strong>{{ user.index_number }}</strong> &bull; Level: 
+      <span class="user-badge" style="background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); color: white;">
+        {% if user.student_level == 'Other' and user.level_other %}{{ user.level_other }}{% else %}{{ user.student_level }}{% endif %}
+      </span>
+      &bull; Course: <strong>{{ user.enrolled_course }}</strong>
+    </p>
+    <p style="font-size: 0.9rem; opacity: 0.85;">Dr. Christopher Boachie Academic Student Portal & Management System</p>
+  </div>
+  <div>
+    <a href="{{ url_for('meetings') }}" class="btn" style="background: white; color: var(--color-primary);">+ Book Office Hours</a>
+  </div>
+</div>
+
+<!-- Highlighted Direct Feedback Banner from Dr. Christopher Boachie if present -->
+{% if user.lecturer_notes %}
+<div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid var(--color-primary-border); margin-bottom: 1.5rem;">
+  <div style="display: flex; items-center; gap: 0.75rem; margin-bottom: 0.5rem;">
+    <span style="font-size: 1.5rem;">💬</span>
+    <div>
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary);">Direct Feedback from Dr. Christopher Boachie</h3>
+      <p style="font-size: 0.92rem; color: var(--color-secondary); margin-top: 0.25rem; font-weight: 600;">
+        "{{ user.lecturer_notes }}"
+      </p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">📅</div>
+    <div>
+      <div class="stat-value">{{ meetings_count }}</div>
+      <div class="stat-label">Booked Meetings</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">🎓</div>
+    <div>
+      <div class="stat-value">{{ thesis_count }}</div>
+      <div class="stat-label">Thesis Submissions</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📚</div>
+    <div>
+      <div class="stat-value">{{ assignments_count }}</div>
+      <div class="stat-label">Assignments Uploaded</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">⚠️</div>
+    <div>
+      <div class="stat-value">{{ complaints_count }}</div>
+      <div class="stat-label">Formal Complaints</div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Content Grid -->
+<div class="content-grid">
+  <!-- Left Column: Quick Actions & Recent Meetings -->
+  <div>
+    <div class="card">
+      <div class="card-title">
+        <span>⚡ Quick Services</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <a href="{{ url_for('meetings') }}" class="btn btn-outline" style="justify-content: flex-start; padding: 0.75rem;">
+          📅 Book Meeting
+        </a>
+        <a href="{{ url_for('thesis') }}" class="btn btn-outline" style="justify-content: flex-start; padding: 0.75rem;">
+          🎓 Thesis Upload
+        </a>
+        <a href="{{ url_for('assignments') }}" class="btn btn-outline" style="justify-content: flex-start; padding: 0.75rem;">
+          📚 Assignments
+        </a>
+        <a href="{{ url_for('complaints') }}" class="btn btn-outline" style="justify-content: flex-start; padding: 0.75rem;">
+          📝 Log Complaint
+        </a>
+      </div>
+      <div style="margin-top: 0.75rem;">
+        <a href="{{ url_for('academic_requests') }}" class="btn btn-outline btn-block" style="justify-content: center; padding: 0.75rem;">
+          📄 Request Recommendation / Academic Inquiry
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Meetings Card -->
+    <div class="card">
+      <div class="card-title">
+        <span>📅 Recent Meeting Bookings</span>
+        <a href="{{ url_for('meetings') }}" style="font-size: 0.85rem; font-weight: 500;">View All &rarr;</a>
+      </div>
+      {% if recent_meetings %}
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Date & Time</th>
+              <th>Status / Feedback</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in recent_meetings %}
+            <tr>
+              <td style="font-weight: 600;">{{ m.topic }}</td>
+              <td>{{ m.preferred_date }} ({{ m.preferred_time }})</td>
+              <td>
+                <span class="badge badge-pending">{{ m.status }}</span>
+                {% if m.lecturer_response %}
+                <div style="font-size: 0.78rem; color: var(--color-primary); font-weight: 600; margin-top: 2px;">
+                  Feedback: {{ m.lecturer_response }}
+                </div>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p style="color: var(--color-text-muted); font-size: 0.9rem; text-align: center; padding: 1rem;">No meeting bookings yet. Click above to reserve a slot with Dr. Boachie.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Column: Announcements & Complaints Status -->
+  <div>
+    <div class="card">
+      <div class="card-title">
+        <span>📢 Announcements from Dr. Christopher Boachie</span>
+      </div>
+      {% if announcements %}
+        {% for a in announcements %}
+        <div class="announcement-item">
+          <div class="announcement-title">{{ a.title }}</div>
+          <div class="announcement-meta">Posted on {{ a.posted_at|format_date('%B %d, %Y') }} &bull; Target: {{ a.target_level }}</div>
+          <p style="font-size: 0.9rem; color: var(--color-secondary);">{{ a.content }}</p>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color: var(--color-text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem; background: var(--color-bg); border-radius: var(--radius-md);">
+          ℹ️ No announcements posted yet by Dr. Christopher Boachie.
+        </p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📝 Complaint & Grievance Tracker</span>
+        <a href="{{ url_for('complaints') }}" style="font-size: 0.85rem; font-weight: 500;">Log New &rarr;</a>
+      </div>
+      {% if recent_complaints %}
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in recent_complaints %}
+            <tr>
+              <td>{{ c.category }}</td>
+              <td><span class="badge badge-info">{{ c.priority }}</span></td>
+              <td>
+                <span class="badge badge-pending">{{ c.status }}</span>
+                {% if c.lecturer_response %}
+                <div style="font-size: 0.78rem; color: var(--color-primary); font-weight: 600; margin-top: 2px;">
+                  Response: {{ c.lecturer_response }}
+                </div>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p style="color: var(--color-text-muted); font-size: 0.9rem; text-align: center; padding: 1rem;">No complaints logged.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

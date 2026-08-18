@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Registration - Bconnect{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div style="width: 56px; height: 56px; border-radius: 14px; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; margin: 0 auto 0.75rem auto; border: 2px solid var(--color-primary-border);">
+        B
+      </div>
+      <h1 class="auth-title">Create Student Account</h1>
+      <p class="auth-sub">Register your details for Dr. Christopher Boachie's approval to access Bconnect services and receive external email alerts</p>
+    </div>
+
+    <form action="{{ url_for('register') }}" method="POST">
+      <div class="form-group">
+        <label for="full_name" class="form-label">Full Name *</label>
+        <input type="text" id="full_name" name="full_name" class="form-control" placeholder="e.g. Kwame Mensah" required>
+      </div>
+
+      <div class="form-group">
+        <label for="index_number" class="form-label">Student Index Number / ID *</label>
+        <input type="text" id="index_number" name="index_number" class="form-control" placeholder="e.g. 10293847 or UG-2026-901" required>
+      </div>
+
+      <!-- MANDATORY EMAIL ADDRESS FIELD FOR EXTERNAL NOTIFICATIONS -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address (For External Email Alerts) *</label>
+        <input type="email" id="email" name="email" class="form-control" placeholder="e.g. kwame.mensah@st.ug.edu.gh or student@gmail.com" required>
+        <div class="form-hint">You will receive external email alerts for registration confirmation, account activation, live class notices, and meeting decisions.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone_number" class="form-label">Phone Number *</label>
+        <input type="tel" id="phone_number" name="phone_number" class="form-control" placeholder="e.g. +233 24 123 4567" required>
+      </div>
+
+      <div class="form-group">
+        <label for="student_level" class="form-label">Academic Level *</label>
+        <select id="student_level" name="student_level" class="form-select" onchange="toggleLevelOther(this.value)" required>
+          <option value="" disabled selected>-- Select Academic Level --</option>
+          <option value="Undergraduate Level 100">Undergraduate - Level 100</option>
+          <option value="Undergraduate Level 200">Undergraduate - Level 200</option>
+          <option value="Undergraduate Level 300">Undergraduate - Level 300</option>
+          <option value="Undergraduate Level 400">Undergraduate - Level 400</option>
+          <option value="Undergraduate Level 500">Undergraduate - Level 500</option>
+          <option value="Undergraduate Level 600">Undergraduate - Level 600</option>
+          <option value="Master's Student">Master's Student (MSc / MPhil)</option>
+          <option value="Ph.D. Student">Ph.D. Student</option>
+          <option value="Other">Other / Special Program</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="levelOtherGroup" style="display: none;">
+        <label for="level_other" class="form-label">Specify Level / Program Details *</label>
+        <input type="text" id="level_other" name="level_other" class="form-control" placeholder="Type your specific program level">
+      </div>
+
+      <div class="form-group">
+        <label for="enrolled_course" class="form-label">Enrolled Course / Major *</label>
+        <input type="text" id="enrolled_course" name="enrolled_course" class="form-control" placeholder="e.g. Computer Science, Finance, Business Admin" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password *</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Minimum 8 characters" minlength="8" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        Submit Account Registration &rarr;
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an approved account? <a href="{{ url_for('login') }}">Sign In</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleLevelOther(val) {
+    const group = document.getElementById('levelOtherGroup');
+    const input = document.getElementById('level_other');
+    if (val === 'Other') {
+      group.style.display = 'block';
+      input.required = true;
+    } else {
+      group.style.display = 'none';
+      input.required = false;
+    }
+  }
+</script>
+{% endblock %}

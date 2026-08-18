@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Login - BoachieEdu{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Student Login</h1>
+      <p>Access Dr. Christopher Boachie's Academic Services</p>
+    </div>
+
+    <form action="{{ url_for('login') }}" method="POST">
+      <div class="form-group">
+        <label for="identifier" class="form-label">Index Number or Phone Number *</label>
+        <input type="text" id="identifier" name="identifier" class="form-control" placeholder="e.g. 10293847 or +233 24 123 4567" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password *</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+        Log In to Dashboard &rarr;
+      </button>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+        Don't have an account yet? <a href="{{ url_for('register') }}" style="font-weight: 600;">Register as a Student</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

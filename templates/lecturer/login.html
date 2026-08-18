@@ -1,0 +1,109 @@
+{% extends 'lecturer/base_lecturer.html' %}
+
+{% block title %}Welcome to Bconnect Workspace - Dr. Boachie Portal{% endblock %}
+
+{% block content %}
+<style>
+  /* Single Viewport Non-Scrollable Landscape Layout */
+  html, body {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+  }
+  .main-container {
+    height: calc(100vh - 120px) !important;
+    max-height: calc(100vh - 120px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 1.5rem !important;
+    margin: 0 auto !important;
+  }
+  .landscape-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1150px;
+    align-items: center;
+  }
+  @media (max-width: 850px) {
+    .landscape-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>
+
+<div class="landscape-grid">
+  <!-- Left Column: Dr. Boachie Profile & Portal Highlights -->
+  <div style="background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%); border: 2px solid var(--color-primary-border); border-radius: var(--radius-lg); padding: 2.25rem; box-shadow: var(--shadow-lg); position: relative; overflow: hidden;">
+    <div style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: rgba(220,38,38,0.06); border-radius: 50%;"></div>
+    
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+      <div style="width: 68px; height: 68px; border-radius: 16px; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; box-shadow: 0 6px 16px rgba(220,38,38,0.3); flex-shrink: 0;">
+        B
+      </div>
+      <div>
+        <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--color-primary); line-height: 1.2;">
+          Dr. Christopher Boachie
+        </h1>
+        <p style="font-size: 0.95rem; font-weight: 700; color: var(--color-secondary);">
+          Senior Lecturer & Academic Advisor
+        </p>
+        <p style="font-size: 0.8rem; color: var(--color-text-muted);">
+          Bconnect Workspace
+        </p>
+      </div>
+    </div>
+
+    <p style="font-size: 0.92rem; color: var(--color-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+      Welcome to your dedicated Bconnect management portal. Approve student account registrations, assign weekly office hours, inspect course assignment submissions, review thesis drafts, and access the 360° Student Data Hub.
+    </p>
+
+    <!-- Quick Features Preview -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+      <div style="background: white; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; align-items: center; gap: 0.65rem;">
+        <span style="font-size: 1.3rem;">📊</span>
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--color-secondary);">Student Data Hub</div>
+          <div style="font-size: 0.75rem; color: var(--color-text-muted);">360° Academic Records</div>
+        </div>
+      </div>
+
+      <div style="background: white; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; align-items: center; gap: 0.65rem;">
+        <span style="font-size: 1.3rem;">📅</span>
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--color-secondary);">Office Hours Slots</div>
+          <div style="font-size: 0.75rem; color: var(--color-text-muted);">Weekly Availability</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Single-Click Welcome & Login Card -->
+  <div style="background: white; border: 2px solid var(--color-primary); border-radius: var(--radius-lg); padding: 2.5rem 2rem; box-shadow: var(--shadow-lg); text-align: center;">
+    <div style="display: inline-block; background: var(--color-primary-light); color: var(--color-primary); padding: 0.35rem 1rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 700; margin-bottom: 1.25rem; border: 1px solid var(--color-primary-border);">
+      🔒 Authorized Bconnect Access
+    </div>
+
+    <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.5rem;">
+      Welcome to Bconnect Workspace! 👋
+    </h2>
+    
+    <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 2rem; line-height: 1.5;">
+      Click the button below to initialize your session and open your workspace.
+    </p>
+
+    <form action="{{ url_for('login') }}" method="POST">
+      <button type="submit" class="btn btn-primary btn-block" style="font-size: 1.1rem; padding: 1rem; font-weight: 800; border-radius: var(--radius-md); box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);">
+        🚀 Enter Bconnect Workspace &rarr;
+      </button>
+    </form>
+
+    <div style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+      <span>🟢 Bconnect Server Status:</span> <strong style="color: var(--color-success);">Active & Ready</strong>
+    </div>
+  </div>
+</div>
+{% endblock %}
